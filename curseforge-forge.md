@@ -7,5 +7,5 @@ you carry, and what to add next.
 - Every potion, splash and lingering form; ingredient lookup and filters
 - Track a potion: the stand shows the next ingredient in its slot
 
-Requires **Mycel**. Needs Forge 66.0.9+, Minecraft 26.3, Java 25.
+Requires **Mycel**. Needs Forge, Minecraft 26.3, 26.2 or 26.1 (26.1-26.1.2), Java 25.
 MIT license.

@@ -37,7 +37,7 @@ final class PotionText {
             if (effect.getAmplifier() > 0) {
                 parts.add(roman(effect.getAmplifier() + 1));
             }
-            if (!effect.getEffect().value().isInstantaneous()) {
+            if (!Effects.isInstantaneous(effect.getEffect().value())) {
                 parts.add(MobEffectUtil.formatDuration(effect, scale, TICKS_PER_SECOND).getString());
             }
             return String.join(" · ", parts);

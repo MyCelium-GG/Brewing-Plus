@@ -3,6 +3,7 @@ package my.celium.org.brewingplus.client;
 import java.lang.reflect.Field;
 
 import my.celium.org.brewingplus.BrewingPlusMod;
+import my.celium.org.client.MycelScreens;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
@@ -58,7 +59,7 @@ public final class GuideButton extends AbstractButton {
     @Override
     public void onPress(InputWithModifiers input) {
         BrewingPlusMod.debug("Guide button pressed");
-        Minecraft.getInstance().gui.setScreen(new GuideScreen(stand));
+        MycelScreens.open(new GuideScreen(stand));
     }
 
     @Override

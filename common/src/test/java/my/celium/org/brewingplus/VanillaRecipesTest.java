@@ -3,6 +3,7 @@ package my.celium.org.brewingplus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -28,9 +29,10 @@ import my.celium.org.brewingplus.BrewGraph.Edge;
 import my.celium.org.brewingplus.BrewGraph.Route;
 
 /**
- * Runs the graph over the real vanilla 26.3 brewing recipes (read as plain
- * JSON from the game jar, no bootstrap): every potion is reachable from water
- * and the classic chains come out the way players brew them.
+ * Runs the graph over the real vanilla brewing recipes of 26.3 and later (read
+ * as plain JSON from the game jar, no bootstrap; skipped before 26.3): every
+ * potion is reachable from water and the classic chains come out the way
+ * players brew them.
  */
 class VanillaRecipesTest {
     static final String MARKER = "data/minecraft/recipe/brewing/potion_water_nether_wart.json";
@@ -40,6 +42,8 @@ class VanillaRecipesTest {
     @BeforeAll
     static void load() throws IOException {
         URL marker = VanillaRecipesTest.class.getClassLoader().getResource(MARKER);
+        // Brewing recipes are data since 26.3; older lines build them in code.
+        assumeTrue(marker != null || dataDrivenBrewing(), "no brewing recipe data before 26.3");
         assertNotNull(marker, "vanilla brewing recipes on the test classpath");
         List<Edge> edges = new ArrayList<>();
         URI uri = URI.create(marker.toString());
@@ -52,6 +56,15 @@ class VanillaRecipesTest {
         }
         graph = new BrewGraph(edges);
         routes = graph.routes(graph.defaultStarts());
+    }
+
+    private static boolean dataDrivenBrewing() {
+        try {
+            Class.forName("net.minecraft.world.item.crafting.BrewingRecipe", false, VanillaRecipesTest.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     private static void read(Path dir, List<Edge> edges) throws IOException {

@@ -20,7 +20,7 @@ import my.celium.org.metadata.ModMetadata;
 public final class BrewingPlusMod {
     public static final String ID = "brewingplus";
 
-    public static final ModMetadata META = ModMetadata.builder(ID, "Brewing+", "1.0.3")
+    public static final ModMetadata META = ModMetadata.builder(ID, "Brewing+", "1.1.0")
             .author("MyCelium")
             .website("https://www.curseforge.com/minecraft/mc-mods/brewing-plus")
             .updateUrl("https://wiki.mycelium-gg.org/updates/brewingplus.json")

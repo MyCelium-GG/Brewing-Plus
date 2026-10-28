@@ -17,6 +17,7 @@ import my.celium.org.brewingplus.BrewGraph.Route;
 import my.celium.org.brewingplus.BrewingPlusMod;
 import my.celium.org.brewingplus.client.GuideState.Form;
 import my.celium.org.brewingplus.client.GuideState.Tab;
+import my.celium.org.client.MycelScreens;
 import my.celium.org.client.MycelTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -511,7 +512,7 @@ public final class GuideScreen extends Screen {
         LocalPlayer player = minecraft.player;
         boolean standOpen = parent != null && player != null && player.containerMenu == parent.getMenu();
         BrewingPlusMod.debug("Guide closed, returning to {}", standOpen ? "stand" : "game");
-        minecraft.gui.setScreen(standOpen ? parent : null);
+        MycelScreens.open(standOpen ? parent : null);
     }
 
     // ---------------------------------------------------------------- layout

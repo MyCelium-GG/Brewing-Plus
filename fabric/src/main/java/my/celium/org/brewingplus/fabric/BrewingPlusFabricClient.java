@@ -18,8 +18,8 @@ public final class BrewingPlusFabricClient implements ClientModInitializer {
             if (button != null) {
                 Screens.getWidgets(screen).add(button);
             }
-            ScreenEvents.afterForeground(screen).register((foregroundScreen, gfx, mouseX, mouseY, tickDelta) ->
-                    StandHint.render(gfx, foregroundScreen, mouseX, mouseY));
+            ScreenHooks.afterForeground(screen,
+                    (foregroundScreen, gfx, mouseX, mouseY) -> StandHint.render(gfx, foregroundScreen, mouseX, mouseY));
         });
     }
 }

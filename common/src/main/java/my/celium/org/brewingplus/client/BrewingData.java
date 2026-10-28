@@ -1,22 +1,11 @@
 package my.celium.org.brewingplus.client;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.mojang.serialization.JsonOps;
+import java.util.function.Predicate;
 
 import my.celium.org.brewingplus.BrewGraph;
 import my.celium.org.brewingplus.BrewGraph.Edge;
@@ -25,27 +14,13 @@ import my.celium.org.brewingplus.BrewingPlusMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.component.predicates.PotionsPredicate;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.packs.PackResources;
-import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.repository.ServerPacksSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionContents;
-import net.minecraft.world.item.crafting.BrewingRecipe;
-import net.minecraft.world.item.crafting.PotionIngredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipePropertySet;
 
 /**
  * The brewing recipes of the current world as a {@link BrewGraph}, plus an
@@ -56,7 +31,9 @@ import net.minecraft.world.item.crafting.RecipePropertySet;
  * straight from the integrated server - datapacks included. On a remote
  * server the vanilla recipes are read from the game's own data, dropping any
  * whose reagent the server does not accept; reagents the server accepts but
- * no known recipe uses are listed as {@link #unknownReagents()}.
+ * no known recipe uses are listed as {@link #unknownReagents()}. Before 26.3
+ * brewing is built in code on both sides, so a remote server's recipes are the
+ * client's own (see {@code BrewingRecipes}, one per Minecraft line).
  */
 public final class BrewingData {
     public enum Source {
@@ -66,11 +43,8 @@ public final class BrewingData {
         VANILLA
     }
 
-    private static final String BREWING_TYPE = "minecraft:brewing";
     private static BrewingData current;
     private static ClientLevel currentLevel;
-    /** Vanilla brewing recipe JSON, read once per game. */
-    private static List<Map.Entry<String, JsonObject>> vanillaJson;
 
     private final Source source;
     private final BrewGraph graph;
@@ -159,16 +133,25 @@ public final class BrewingData {
 
     // ------------------------------------------------------------- loading
 
+    /**
+     * One brewing recipe, whatever its source: every bottle item in {@code inputItems}
+     * holding one of {@code inputPotions} (none = any potion) plus one of
+     * {@code reagents} gives {@code output}. Made by {@code BrewingRecipes}, which
+     * differs between Minecraft lines (data-driven recipes since 26.3).
+     */
+    record Brew(String id, List<Holder<Item>> inputItems, List<Holder<Potion>> inputPotions,
+            List<Holder<Item>> reagents, ItemStack output) {
+    }
+
     private static BrewingData load(Minecraft minecraft, ClientLevel level) {
         long start = System.nanoTime();
         MinecraftServer server = minecraft.getSingleplayerServer();
         BrewingData data;
         try {
             if (server != null) {
-                data = build(Source.WORLD, server.getRecipeManager().getRecipes(), null);
+                data = build(Source.WORLD, BrewingRecipes.world(server), null);
             } else {
-                data = build(Source.VANILLA, readVanilla(level), level.recipeAccess()
-                        .propertySet(RecipePropertySet.BREWING_REAGENTS));
+                data = build(Source.VANILLA, BrewingRecipes.vanilla(level), BrewingRecipes.serverReagents(level));
             }
         } catch (RuntimeException e) {
             BrewingPlusMod.debug("Recipe loading failed: {}", e.toString());
@@ -180,37 +163,34 @@ public final class BrewingData {
         return data;
     }
 
-    private static BrewingData build(Source source, Collection<RecipeHolder<?>> recipes, RecipePropertySet serverReagents) {
+    /** {@code serverReagents}: what a remote server accepts as a reagent, or {@code null} to trust every recipe. */
+    private static BrewingData build(Source source, List<Brew> recipes, Predicate<ItemStack> serverReagents) {
         List<Edge> edges = new ArrayList<>();
         Map<String, ItemStack> bottles = new LinkedHashMap<>();
         Map<String, ItemStack> reagents = new LinkedHashMap<>();
-        List<RecipeHolder<?>> sorted = new ArrayList<>(recipes);
-        sorted.sort(Comparator.comparing(holder -> holder.id().identifier().toString()));
-        for (RecipeHolder<?> holder : sorted) {
-            if (!(holder.value() instanceof BrewingRecipe recipe)) {
-                continue;
-            }
+        List<Brew> sorted = new ArrayList<>(recipes);
+        sorted.sort(Comparator.comparing(Brew::id));
+        for (Brew recipe : sorted) {
             try {
                 List<String> reagentIds = new ArrayList<>();
-                recipe.getReagent().ingredient().items().forEach(item -> {
+                for (Holder<Item> item : recipe.reagents()) {
                     ItemStack stack = new ItemStack(item);
                     if (serverReagents == null || serverReagents.test(stack)) {
                         reagentIds.add(item.getRegisteredName());
                         reagents.putIfAbsent(item.getRegisteredName(), stack);
                     }
-                });
+                }
                 if (reagentIds.isEmpty()) {
                     continue;
                 }
-                ItemStack output = recipe.getOutput().create();
+                ItemStack output = recipe.output();
                 String outKey = keyOf(output);
                 bottles.putIfAbsent(outKey, output);
-                String recipeId = holder.id().identifier().toString();
-                for (String inKey : inputKeys(recipe.getInput(), bottles)) {
-                    edges.add(new Edge(inKey, reagentIds, outKey, recipeId));
+                for (String inKey : inputKeys(recipe, bottles)) {
+                    edges.add(new Edge(inKey, reagentIds, outKey, recipe.id()));
                 }
             } catch (RuntimeException e) {
-                BrewingPlusMod.debug("Skipped brewing recipe {}: {}", holder.id(), e.toString());
+                BrewingPlusMod.debug("Skipped brewing recipe {}: {}", recipe.id(), e.toString());
             }
         }
         List<ItemStack> unknown = new ArrayList<>();
@@ -226,73 +206,23 @@ public final class BrewingData {
     }
 
     /** One key per accepted item and potion; recipes without a potion filter accept any potion. */
-    private static List<String> inputKeys(PotionIngredient input, Map<String, ItemStack> bottles) {
-        List<Holder<Potion>> potions = input.potions()
-                .flatMap(PotionsPredicate::potions)
-                .map(HolderSet::stream)
-                .map(stream -> stream.toList())
-                .orElse(List.of());
+    private static List<String> inputKeys(Brew recipe, Map<String, ItemStack> bottles) {
         List<String> keys = new ArrayList<>();
-        input.ingredient().items().forEach(itemHolder -> {
+        for (Holder<Item> itemHolder : recipe.inputItems()) {
             Item item = itemHolder.value();
             String itemId = itemHolder.getRegisteredName();
-            if (potions.isEmpty()) {
+            if (recipe.inputPotions().isEmpty()) {
                 String key = BrewGraph.key(itemId, BrewGraph.ANY);
                 bottles.putIfAbsent(key, new ItemStack(item));
                 keys.add(key);
-                return;
+                continue;
             }
-            for (Holder<Potion> potion : potions) {
+            for (Holder<Potion> potion : recipe.inputPotions()) {
                 String key = BrewGraph.key(itemId, potion.getRegisteredName());
                 bottles.putIfAbsent(key, PotionContents.createItemStack(item, potion));
                 keys.add(key);
             }
-        });
+        }
         return keys;
-    }
-
-    /** Decodes the vanilla brewing recipes against the level's registries. */
-    private static List<RecipeHolder<?>> readVanilla(ClientLevel level) {
-        RegistryOps<JsonElement> ops = level.registryAccess().createSerializationContext(JsonOps.INSTANCE);
-        List<RecipeHolder<?>> out = new ArrayList<>();
-        for (Map.Entry<String, JsonObject> entry : vanillaJson()) {
-            Optional<Recipe<?>> recipe = Recipe.DIRECT_CODEC.parse(ops, entry.getValue()).result();
-            if (recipe.isPresent()) {
-                out.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse(entry.getKey())),
-                        recipe.get()));
-            } else {
-                BrewingPlusMod.debug("Could not decode vanilla recipe {}", entry.getKey());
-            }
-        }
-        return out;
-    }
-
-    private static synchronized List<Map.Entry<String, JsonObject>> vanillaJson() {
-        if (vanillaJson != null) {
-            return vanillaJson;
-        }
-        Map<String, JsonObject> found = new HashMap<>();
-        try (PackResources pack = ServerPacksSource.createVanillaPackSource().fullResources()) {
-            pack.listResources(PackType.SERVER_DATA, "minecraft", "recipe", (id, supplier) -> {
-                try (InputStream in = supplier.get();
-                        Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-                    JsonElement json = JsonParser.parseReader(reader);
-                    if (json.isJsonObject() && json.getAsJsonObject().has("type")
-                            && BREWING_TYPE.equals(json.getAsJsonObject().get("type").getAsString())) {
-                        String path = id.getPath();
-                        String name = path.substring("recipe/".length(), path.length() - ".json".length());
-                        found.put(id.getNamespace() + ":" + name, json.getAsJsonObject());
-                    }
-                } catch (Exception e) {
-                    BrewingPlusMod.debug("Could not read {}: {}", id, e.toString());
-                }
-            });
-        } catch (Exception e) {
-            BrewingPlusMod.debug("Could not open the vanilla data pack: {}", e.toString());
-        }
-        List<Map.Entry<String, JsonObject>> sorted = new ArrayList<>(found.entrySet());
-        sorted.sort(Map.Entry.comparingByKey());
-        vanillaJson = List.copyOf(sorted);
-        return vanillaJson;
     }
 }

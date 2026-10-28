@@ -5,6 +5,10 @@ plugins {
 
 description = rootProject.description
 
+// Fabric API calls that differ between Minecraft lines (ScreenHooks), one
+// folder per line; -Pmc picks the line (see settings.gradle).
+sourceSets.main.java.srcDir("src/mc/${minecraft_line}/java")
+
 dependencies {
     // MC 26.1+ ships non-obfuscated: Loom 1.18+ needs no mappings layer.
     minecraft "com.mojang:minecraft:${minecraft_version}"
