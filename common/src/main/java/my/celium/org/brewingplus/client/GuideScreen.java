@@ -433,6 +433,10 @@ public final class GuideScreen extends Screen {
     private void toggleTrack() {
         state.tracked = state.selected != null && state.selected.equals(state.tracked) ? null : state.selected;
         BrewingPlusMod.debug("Tracking {}", state.tracked);
+        if (state.tracked != null) {
+            my.celium.org.brewingplus.BrewingStats.count("track");
+            my.celium.org.brewingplus.BrewingStats.count("tracked_potions", state.tracked);
+        }
         if (trackButton != null) {
             trackButton.setMessage(trackLabel());
         }
@@ -461,6 +465,7 @@ public final class GuideScreen extends Screen {
 
     private void select(String bottle) {
         BrewingPlusMod.debug("Selected potion {}", bottle);
+        my.celium.org.brewingplus.BrewingStats.count("looked_up_potions", bottle);
         state.selected = bottle;
         if (state.tab != Tab.POTIONS) {
             state.tab = Tab.POTIONS;
@@ -478,6 +483,7 @@ public final class GuideScreen extends Screen {
 
     private void selectReagent(String reagent) {
         BrewingPlusMod.debug("Selected reagent {}", reagent);
+        my.celium.org.brewingplus.BrewingStats.count("looked_up_ingredients", reagent);
         state.selectedReagent = reagent;
         if (state.tab != Tab.INGREDIENTS) {
             state.tab = Tab.INGREDIENTS;

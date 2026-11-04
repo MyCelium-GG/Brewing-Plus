@@ -59,6 +59,7 @@ public final class GuideButton extends AbstractButton {
     @Override
     public void onPress(InputWithModifiers input) {
         BrewingPlusMod.debug("Guide button pressed");
+        my.celium.org.brewingplus.BrewingStats.count("guide_open");
         MycelScreens.open(new GuideScreen(stand));
     }
 

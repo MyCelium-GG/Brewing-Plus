@@ -64,6 +64,13 @@ reagents and bottle inputs.
 
 The guide's title bar says which one is in use.
 
+## Anonymous stats
+
+Brewing+ sends anonymous stats (which potions get looked up and tracked, and errors in its own code) to its FastStats project through
+Mycel. It follows Mycel's choice exactly: the one-time screen in your own
+game, `shareStats` / `shareErrors` in `config/mycel.json` on servers.
+Details: https://wiki.mycelium-gg.org/privacy#stats-brewingplus
+
 ## Configuration (`config/brewingplus.json`)
 
 | Key | Default | Meaning |

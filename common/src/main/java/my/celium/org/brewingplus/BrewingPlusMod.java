@@ -20,7 +20,7 @@ import my.celium.org.metadata.ModMetadata;
 public final class BrewingPlusMod {
     public static final String ID = "brewingplus";
 
-    public static final ModMetadata META = ModMetadata.builder(ID, "Brewing+", "1.1.1")
+    public static final ModMetadata META = ModMetadata.builder(ID, "Brewing+", "1.1.2")
             .author("MyCelium")
             .website("https://www.curseforge.com/minecraft/mc-mods/brewing-plus")
             .updateUrl("https://wiki.mycelium-gg.org/updates/brewingplus.json")
@@ -50,6 +50,7 @@ public final class BrewingPlusMod {
         debug = builder.booleanValue("debug", false,
                 "Log recipe loading, guide clicks and routes to the game log.");
         config = builder.build();
+        BrewingStats.start();
     }
 
     /** Info-level log line tagged {@code [debug]}, only while the {@code debug} option is on. */
