@@ -1,101 +1,34 @@
-# Brewing+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/header.svg" alt="Brewing+: never look up a potion recipe again" width="100%">
+</p>
 
-[![License](https://img.shields.io/github/license/MyCelium-GG/MyCel-Lib)](LICENSE)
+<p align="center">
+  <a href="https://www.curseforge.com/minecraft/mc-mods/brewing-plus"><img src="https://img.shields.io/curseforge/dt/1756438?style=flat-square&logo=curseforge&logoColor=white&label=downloads&color=F16436" alt="CurseForge downloads"></a>
+  <a href="https://www.curseforge.com/minecraft/mc-mods/brewing-plus/files"><img src="https://img.shields.io/badge/Minecraft-26.1%20--%2026.3-62B47A?style=flat-square" alt="Minecraft 26.1 to 26.3"></a>
+  <img src="https://img.shields.io/badge/loaders-Fabric%2C%20Forge%2C%20NeoForge-1E88E5?style=flat-square" alt="Fabric, Forge, NeoForge">
+  <img src="https://img.shields.io/badge/side-client%20only-8E44AD?style=flat-square" alt="Client only">
+  <img src="https://img.shields.io/badge/Java-25-E76F00?style=flat-square&logo=openjdk&logoColor=white" alt="Java 25">
+  <a href="https://www.curseforge.com/minecraft/mc-mods/mycel"><img src="https://img.shields.io/badge/requires-Mycel-F16436?style=flat-square&logo=curseforge&logoColor=white" alt="Requires Mycel"></a>
+  <a href="https://wiki.mycelium-gg.org/brewingplus/"><img src="https://img.shields.io/badge/docs-wiki-0A7BBB?style=flat-square" alt="Docs on the wiki"></a>
+  <a href="https://github.com/MyCelium-GG/Brewing-Plus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/MyCelium-GG/Brewing-Plus?style=flat-square&color=F2C14E" alt="License"></a>
+</p>
 
-Never look up a potion recipe again. Click the small potion button on the
-brewing stand to open a guide: every potion the world can brew, its full
-recipe from a water bottle, which ingredients you carry, and what each
-ingredient does. Track a potion and the stand itself shows the next
-ingredient to add. Client side, no keybinds.
+![About the mod](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/about-the-mod.svg)
 
-Built on [Mycel](https://github.com/MyCelium-GG/MyCel-Lib) (`my.celium.org`), the shared
-core for the MyCelium ecosystem: configuration, platform abstraction and
-diagnostics are reused.
+![Click the potion button on the brewing stand to open a guide: every potion the world can brew, its full recipe from a water bottle, which ingredients you carry, and what each ingredient does. Track a potion and the stand shows the next ingredient. Client side, no keybinds.](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/about.svg)
 
-| | |
-|---|---|
-| Mod id | `brewingplus` |
-| Minecraft | **26.3**, **26.2**, **26.1** (26.1-26.1.2) · Java **25** |
-| Loaders | Fabric, Forge, NeoForge |
-| Docs | [wiki.mycelium-gg.org/brewingplus](https://wiki.mycelium-gg.org/brewingplus/) |
+![How it works](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/how-it-works.svg)
 
-## Behavior
+![Potion button, potions grid with filters and search, recipe chains from a water bottle, ingredients, and tracking at the stand.](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/features.svg)
 
-- A potion button sits in the brewing stand's top-right corner. It opens
-  the guide without closing the stand; "Back to stand" (or Esc) returns to
-  it with the bottles still in place. If the stand holds a potion, the
-  guide opens on it.
-- **Potions**: a grid of every potion the world's recipes make (drinkable,
-  splash, lingering). Filter by bottle type, search by name *or ingredient*
-  (`carrot` finds Night Vision), or tick **Have all** to see only what you
-  can brew with your inventory. A green dot marks those potions.
-- Pick one to see its recipe chain from a water bottle, e.g. Splash Potion
-  of Night Vision:
+![Where recipes come from](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/where-recipes-come-from.svg)
 
-  ```
-  Start: Water Bottle                         have 3
-  1. Nether Wart    -> Awkward Potion           x5
-  2. Golden Carrot  -> Potion of Night Vision   x2
-  3. Gunpowder      -> Splash Potion of NV      x4
-  ```
+![Singleplayer and LAN host: exact recipes from the integrated server, datapacks and mods included. Remote server: vanilla recipes minus any whose reagent the server rejects.](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/recipes-box.svg)
 
-  plus what it brews into next, other recipes that make it, whether you
-  carry everything (or what is missing), and the stand's remaining fuel.
-  Ties go to the route that converts to splash/lingering last.
-- **Ingredients**: every reagent and every recipe it is used in.
-- **Track at stand**: back at the stand, a ghost of the next ingredient
-  sits in the empty ingredient slot (or ghosts of the starting bottle in
-  empty bottle slots), and a card beside the stand shows the next step,
-  how many you carry and how many steps are left. It flags wrong
-  ingredients, bottles that can no longer become the tracked potion, mixed
-  bottles and missing fuel.
+![Configuration](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/configuration.svg)
 
-### Where recipes come from
+![Settings in config/brewingplus.json: enabled, showButton, showStandHint, debug. Reload with /mycel reload brewingplus.](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/config.svg)
 
-Brewing is data-driven since 26.x (`minecraft:brewing` recipes), and
-servers never send those recipes to clients, only the item sets of valid
-reagents and bottle inputs.
+![Anonymous stats](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/anonymous-stats.svg)
 
-- **Singleplayer / LAN host**: read from the integrated server's recipe
-  manager. Exact, datapacks and modded recipes included.
-- **Remote server**: the vanilla recipes, read from the game's own data
-  pack, minus any whose reagent the server rejects. Reagents the server
-  accepts that no known recipe uses are listed with a `?`.
-
-The guide's title bar says which one is in use.
-
-## Anonymous stats
-
-Brewing+ sends anonymous stats (which potions get looked up and tracked, and errors in its own code) to its FastStats project through
-Mycel. It follows Mycel's choice exactly: the one-time screen in your own
-game, `shareStats` / `shareErrors` in `config/mycel.json` on servers.
-Details: https://wiki.mycelium-gg.org/privacy#stats-brewingplus
-
-## Configuration (`config/brewingplus.json`)
-
-| Key | Default | Meaning |
-|---|---|---|
-| `enabled` | `true` | Master switch (also toggleable live via `Mycel.setEnabled`). |
-| `showButton` | `true` | Show the guide button on the brewing stand. |
-| `showStandHint` | `true` | Ghost ingredient and next-step card while a potion is tracked. |
-| `debug` | `false` | Log recipe loading, guide clicks and filters. |
-
-Reload live with `/mycel reload brewingplus`. A config screen is
-available from the mod list on Forge and NeoForge.
-
-## Building
-
-JDK 25, then:
-
-```sh
-./gradlew build            # all loaders + tests
-./gradlew :common:test     # unit tests only
-```
-
-`VanillaRecipesTest` runs the route finder over the real vanilla 26.3
-brewing recipes from the game jar, so a Minecraft update that changes them
-shows up as a failing test.
-
-Mycel itself comes from [JitPack](https://jitpack.io/#MyCelium-GG/MyCel-Lib)
-as one universal jar for all loaders
-(the version is `mycel_version` in `gradle.properties`). No local setup needed.
+<a href="https://wiki.mycelium-gg.org/privacy#stats-brewingplus"><img src="https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/stats.svg" alt="Brewing+ sends anonymous stats to its FastStats project through Mycel: which potions get looked up and tracked, and errors in its own code. It follows Mycel's choice exactly." width="100%"></a>
