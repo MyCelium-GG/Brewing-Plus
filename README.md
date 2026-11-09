@@ -13,6 +13,8 @@
   <a href="https://github.com/MyCelium-GG/Brewing-Plus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/MyCelium-GG/Brewing-Plus?style=flat-square&color=F2C14E" alt="License"></a>
 </p>
 
+<a href="https://www.curseforge.com/minecraft/mc-mods/mycel"><img src="https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/aedbcd01cd3b/docs/img/banners/mycel-required.svg" alt="Mycel is required: this mod needs the Mycel library to run. Install Mycel next to it, for the same Minecraft version and loader. Download it from CurseForge." width="100%"></a>
+
 ![About the mod](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/about-the-mod.svg)
 
 ![Click the potion button on the brewing stand to open a guide: every potion the world can brew, its full recipe from a water bottle, which ingredients you carry, and what each ingredient does. Track a potion and the stand shows the next ingredient. Client side, no keybinds.](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/997629c78689/docs/img/banners/about.svg)
