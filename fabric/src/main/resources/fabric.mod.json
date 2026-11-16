@@ -10,6 +10,9 @@
   "license": "${license}",
   "icon": "assets/${mod_id}/icon.png",
   "environment": "*",
+  "mixins": [
+    "brewingplus.mixins.json"
+  ],
   "entrypoints": {
     "main": [
       "my.celium.org.brewingplus.fabric.BrewingPlusFabric"
@@ -22,7 +25,12 @@
     "fabricloader": ">=${fabric_loader_version}",
     "fabric-api": "*",
     "minecraft": "~${minecraft_line}",
-    "java": ">=${java_version}",
+    "java": ">=${java_version}"
+  },
+  "recommends": {
     "mycel": ">=${mycel_version}"
+  },
+  "breaks": {
+    "mycel": "<${mycel_version}"
   }
 }

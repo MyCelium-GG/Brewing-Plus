@@ -1,5 +1,9 @@
 package my.celium.org.brewingplus.neoforge;
 
+import my.celium.org.brewingplus.client.StandCard;
+import my.celium.org.brewingplus.client.StandClient;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import my.celium.org.brewingplus.client.GuideButton;
 import my.celium.org.brewingplus.client.StandHint;
 import net.neoforged.neoforge.client.event.ScreenEvent;
@@ -12,6 +16,8 @@ public final class ClientBrewingPlus {
     public static void register() {
         NeoForge.EVENT_BUS.addListener(ClientBrewingPlus::onScreenInit);
         NeoForge.EVENT_BUS.addListener(ClientBrewingPlus::onScreenForeground);
+        NeoForge.EVENT_BUS.addListener((RenderGuiEvent.Post event) -> StandCard.render(event.getGuiGraphics()));
+        NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> StandClient.clear());
     }
 
     private static void onScreenInit(ScreenEvent.Init.Post event) {

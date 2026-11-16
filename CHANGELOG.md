@@ -6,6 +6,17 @@ Brewing+ is versioned semantically (`MAJOR.MINOR.PATCH`).
 It runs on Minecraft 26.3, 26.2 and 26.1 (Fabric + Forge + NeoForge, Java 25) and requires
 [Mycel](https://github.com/MyCelium-GG/MyCel-Lib) (`my.celium.org`).
 
+## [1.2.0] - 2026-11-16
+
+### Added
+- Your potions are ready: when a brew you started finishes, a chat line tells you what is ready and where the stand is ("Ready: 3 x Awkward Potion   14 blocks south"). Tracking a potion in the guide adds its next step ("Next for Potion of Swiftness: Sugar (last step)"). Setting `readyMessage`.
+- Look at a brewing stand to see a card with its bottles, the brew's time left, how many brews of fuel are left and the tracked potion's next step. Setting `standCard`.
+- Both need Brewing+ on the server too (always there in singleplayer). On a server with Brewing+, players without the mod still get a plain chat line when their brew is ready.
+
+### Changed
+- Installed without Mycel, the game still starts: Brewing+ stays off and says in chat that Mycel is missing, with a download link.
+- New icon: a real brewing stand with a Potion of Healing and a Potion of Swiftness in front of a blurred crimson forest.
+
 ## [1.1.2] - 2026-11-04
 
 ### Changed
