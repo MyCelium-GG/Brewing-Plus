@@ -15,10 +15,10 @@ public final class GuideState {
 
     /** Bottle filter on the potion grid. */
     enum Form {
-        ALL("All", null),
-        DRINK("Potion", "minecraft:potion"),
-        SPLASH("Splash", "minecraft:splash_potion"),
-        LINGERING("Lingering", "minecraft:lingering_potion");
+        ALL("all", null),
+        DRINK("potion", "minecraft:potion"),
+        SPLASH("splash", "minecraft:splash_potion"),
+        LINGERING("lingering", "minecraft:lingering_potion");
 
         final String label;
         final String item;

@@ -74,7 +74,7 @@ public final class StandClient {
             return;
         }
         BrewingData data = BrewingData.get();
-        MutableComponent line = VOICE.note("Ready: " + counts(data, filled),
+        MutableComponent line = VOICE.note(Tr.s("ready.list", counts(data, filled)),
                 TextUtil.muted("   " + where(minecraft, stand.pos())));
         minecraft.player.sendSystemMessage(line);
         String next = nextStep(data, filled.get(0), "");
@@ -133,7 +133,7 @@ public final class StandClient {
         }
         String target = name(data, tracked);
         if (tracked.equals(bottle)) {
-            return "Your " + target + " is done";
+            return Tr.s("next.done", target);
         }
         Route route = data.graph().route(bottle, tracked);
         if (route == null || route.steps().isEmpty()) {
@@ -143,25 +143,18 @@ public final class StandClient {
         if (!brewing.isEmpty() && steps.get(0).reagents().contains(brewing)) {
             steps = steps.subList(1, steps.size());
             if (steps.isEmpty()) {
-                return "This brew makes your " + target;
+                return Tr.s("next.this_brew", target);
             }
         }
-        String more = steps.size() > 1 ? " (" + steps.size() + " steps left)" : " (last step)";
-        return "Next for " + target + ": " + PotionText.name(data.reagent(steps.get(0).reagents().get(0))) + more;
+        String more = steps.size() > 1 ? Tr.s("steps_left", steps.size()) : Tr.s("last_step");
+        return Tr.s("next.for", target, PotionText.name(data.reagent(steps.get(0).reagents().get(0)))) + " (" + more + ")";
     }
 
     /** "12 blocks north". */
     static String where(Minecraft minecraft, BlockPos pos) {
         double dx = pos.getX() + 0.5 - minecraft.player.getX();
         double dz = pos.getZ() + 0.5 - minecraft.player.getZ();
-        int distance = (int) Math.round(Math.sqrt(dx * dx + dz * dz));
-        if (distance < 2) {
-            return "right here";
-        }
-        String dir = Math.abs(dx) > Math.abs(dz) * 2 ? (dx > 0 ? "east" : "west")
-                : Math.abs(dz) > Math.abs(dx) * 2 ? (dz > 0 ? "south" : "north")
-                : (dz > 0 ? "south" : "north") + (dx > 0 ? "east" : "west");
-        return distance + " blocks " + dir;
+        return Tr.where(dx, dz);
     }
 
     private static long now() {

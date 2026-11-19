@@ -68,21 +68,21 @@ public final class StandCard {
         lines.add(new Line(minecraft.level.getBlockState(pos).getBlock().getName().getString(), MycelTheme.ACCENT));
         List<String> filled = stand.filled();
         if (filled.isEmpty()) {
-            lines.add(new Line("No bottles", MycelTheme.DIM));
+            lines.add(new Line(Tr.s("card.no_bottles"), MycelTheme.DIM));
         } else {
             lines.add(new Line(StandClient.counts(data, filled), MycelTheme.TEXT));
         }
         if (stand.brewTime() > 0 && !stand.ingredient().isEmpty()) {
-            lines.add(new Line("Brewing with " + StandClient.itemName(stand.ingredient()) + "   "
+            lines.add(new Line(Tr.s("card.brewing", StandClient.itemName(stand.ingredient())) + "   "
                     + time(stand.brewTime()), MycelTheme.HEADING));
         } else if (!filled.isEmpty()) {
-            lines.add(new Line(stand.ingredient().isEmpty() ? "Waiting for an ingredient"
-                    : "Not brewing: " + StandClient.itemName(stand.ingredient()) + " does nothing here", MycelTheme.DIM));
+            lines.add(new Line(stand.ingredient().isEmpty() ? Tr.s("card.waiting")
+                    : Tr.s("card.does_nothing", StandClient.itemName(stand.ingredient())), MycelTheme.DIM));
         }
         if (stand.fuelBrews() <= 0) {
-            lines.add(new Line("No fuel: add Blaze Powder", MycelTheme.WARN));
+            lines.add(new Line(Tr.s("no_fuel"), MycelTheme.WARN));
         } else {
-            lines.add(new Line("Fuel: " + stand.fuelBrews() + (stand.fuelBrews() == 1 ? " brew" : " brews"), MycelTheme.DIM));
+            lines.add(new Line(Tr.s("card.fuel", Tr.plural(stand.fuelBrews(), "brews")), MycelTheme.DIM));
         }
         if (!filled.isEmpty()) {
             String next = StandClient.nextStep(data, filled.get(0), stand.brewTime() > 0 ? stand.ingredient() : "");

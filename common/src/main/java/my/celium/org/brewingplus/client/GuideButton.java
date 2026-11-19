@@ -35,7 +35,7 @@ public final class GuideButton extends AbstractButton {
     private GuideButton(BrewingStandScreen stand, int x, int y) {
         super(x, y, SIZE, SIZE, Component.literal("Brewing+"));
         this.stand = stand;
-        setTooltip(Tooltip.create(Component.literal("Brewing+: how to brew every potion")));
+        setTooltip(Tooltip.create(Component.literal("Brewing+: " + Tr.s("button.tip"))));
     }
 
     /** The button for {@code screen}, or {@code null} when it is not a brewing stand or the button is off. */

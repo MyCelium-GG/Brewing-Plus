@@ -301,17 +301,17 @@ public final class GuideScreen extends Screen {
 
     private void potionRows(String bottle, List<Row> out) {
         Route route = data.routeFromWater(bottle);
-        Row howTo = Row.header("How to brew");
-        howTo.right = "1 ingredient = 3 bottles";
+        Row howTo = Row.header(Tr.s("guide.how"));
+        howTo.right = Tr.s("guide.three_bottles");
         out.add(howTo);
         if (route == null) {
-            out.add(Row.note("No known recipe chain makes this", MycelTheme.BAD));
+            out.add(Row.note(Tr.s("guide.no_chain"), MycelTheme.BAD));
         } else {
             Row start = new Row();
             start.icon = data.bottle(route.start());
-            start.text = "Start: " + PotionText.name(start.icon);
+            start.text = Tr.s("guide.start", PotionText.name(start.icon));
             int bottles = bottleCount(route.start());
-            start.right = "have " + bottles;
+            start.right = Tr.s("guide.have", bottles);
             start.rightColor = bottles > 0 ? MycelTheme.GOOD : MycelTheme.DIM;
             out.add(start);
             List<String> picks = BrewGraph.pickReagents(route, counts);
@@ -322,7 +322,7 @@ public final class GuideScreen extends Screen {
                 Row row = new Row();
                 row.badge = String.valueOf(i + 1);
                 row.icon = data.reagent(reagent);
-                row.text = PotionText.name(row.icon) + (step.reagents().size() > 1 ? " (or other)" : "");
+                row.text = PotionText.name(row.icon) + (step.reagents().size() > 1 ? " (" + Tr.s("guide.or_other") + ")" : "");
                 row.color = pick != null ? MycelTheme.GOOD : MycelTheme.BAD;
                 row.icon2 = data.bottle(step.to());
                 row.text2 = "→ " + PotionText.full(row.icon2);
@@ -336,7 +336,7 @@ public final class GuideScreen extends Screen {
 
         List<Edge> next = data.graph().edgesFrom(bottle);
         if (!next.isEmpty()) {
-            out.add(Row.header("Brews into"));
+            out.add(Row.header(Tr.s("guide.brews_into")));
             for (Edge edge : next) {
                 out.add(linkRow(data.reagent(edge.reagents().get(0)), edge.to(), edge.reagents().get(0)));
             }
@@ -357,7 +357,7 @@ public final class GuideScreen extends Screen {
             other.add(row);
         }
         if (!other.isEmpty()) {
-            out.add(Row.header("Also made from"));
+            out.add(Row.header(Tr.s("guide.also_from")));
             out.addAll(other);
         }
     }
@@ -377,20 +377,20 @@ public final class GuideScreen extends Screen {
     private void reagentRows(String reagent, List<Row> out) {
         List<Edge> uses = new ArrayList<>(data.graph().edgesUsing(reagent));
         if (uses.isEmpty()) {
-            out.add(Row.header("Unknown recipes"));
-            out.add(Row.note("This server accepts it in the stand,", MycelTheme.TEXT));
-            out.add(Row.note("but servers don't share brewing recipes.", MycelTheme.TEXT));
-            out.add(Row.note("Try it on an Awkward Potion first.", MycelTheme.DIM));
+            out.add(Row.header(Tr.s("guide.unknown")));
+            out.add(Row.note(Tr.s("guide.unknown.1"), MycelTheme.TEXT));
+            out.add(Row.note(Tr.s("guide.unknown.2"), MycelTheme.TEXT));
+            out.add(Row.note(Tr.s("guide.unknown.3"), MycelTheme.DIM));
             return;
         }
         uses.sort(Comparator.comparingInt((Edge e) -> formOrder(e.from()))
                 .thenComparingInt(e -> potionOrder(e.from()))
                 .thenComparingInt(e -> potionOrder(e.to())));
-        out.add(Row.header("Used in " + uses.size() + (uses.size() == 1 ? " recipe" : " recipes")));
+        out.add(Row.header(Tr.plural(uses.size(), "guide.used_in")));
         for (Edge edge : uses) {
             Row row = new Row();
             row.icon = data.bottle(edge.from());
-            row.text = BrewGraph.isAny(edge.from()) ? "Any " + PotionText.name(row.icon) : PotionText.full(row.icon);
+            row.text = BrewGraph.isAny(edge.from()) ? Tr.s("guide.any", PotionText.name(row.icon)) : PotionText.full(row.icon);
             row.icon2 = data.bottle(edge.to());
             row.text2 = "→ " + PotionText.full(row.icon2);
             row.bottle = edge.to();
@@ -404,8 +404,8 @@ public final class GuideScreen extends Screen {
     protected void init() {
         int buttonY = height - FOOTER + 6;
         int searchWidth = leftEnd() - MARGIN - (state.tab == Tab.POTIONS ? haveWidth() + 4 : 0);
-        search = new EditBox(font, MARGIN, SEARCH_Y, searchWidth, 14, Component.literal("Search"));
-        search.setHint(Component.literal(state.tab == Tab.POTIONS ? "Potion or ingredient…" : "Ingredient…"));
+        search = new EditBox(font, MARGIN, SEARCH_Y, searchWidth, 14, Component.literal(Tr.s("search")));
+        search.setHint(Component.literal(MycelTheme.fit(font, Tr.s(state.tab == Tab.POTIONS ? "search.potions" : "search.ingredients"), searchWidth - 8)));
         search.setValue(state.search);
         search.setResponder(text -> {
             state.search = text;
@@ -420,14 +420,14 @@ public final class GuideScreen extends Screen {
         } else {
             trackButton = null;
         }
-        String back = parent != null ? "Back to stand" : "Done";
-        addRenderableWidget(Button.builder(Component.literal(back), button -> onClose())
+        Component back = parent != null ? Component.literal(Tr.s("button.back")) : Component.translatable("gui.done");
+        addRenderableWidget(Button.builder(back, button -> onClose())
                 .bounds(width - MARGIN - 100, buttonY, 100, 20).build());
     }
 
     private Component trackLabel() {
         boolean tracking = state.selected != null && state.selected.equals(state.tracked);
-        return Component.literal(tracking ? "Stop tracking" : "Track at stand");
+        return Component.literal(Tr.s(tracking ? "button.untrack" : "button.track"));
     }
 
     private void toggleTrack() {
@@ -616,7 +616,7 @@ public final class GuideScreen extends Screen {
         gfx.fill(0, 0, width, TITLE_BAR, MycelTheme.ACCENT_DARK);
         gfx.fill(0, TITLE_BAR - 2, width, TITLE_BAR, MycelTheme.HEADER_EDGE);
         gfx.centeredText(font, title, width / 2, 4, MycelTheme.HEADING);
-        String source = data.source() == BrewingData.Source.WORLD ? "Recipes: this world" : "Recipes: vanilla";
+        String source = Tr.s(data.source() == BrewingData.Source.WORLD ? "source.world" : "source.vanilla");
         gfx.text(font, source, width - MARGIN - font.width(source), 4, 0xFFFFCDD2);
         MycelTheme.panel(gfx, 4, TITLE_BAR + 2, split() - 1, height - FOOTER + 2);
         MycelTheme.panel(gfx, split() + 1, TITLE_BAR + 2, width - 4, height - FOOTER + 2);
@@ -641,14 +641,16 @@ public final class GuideScreen extends Screen {
             boolean on = state.tab == tabs[i];
             boolean hover = inside(mouseX, mouseY, x, TAB_Y, tabWidth(), TAB_H);
             gfx.fill(x, TAB_Y, x + tabWidth(), TAB_Y + TAB_H, on ? MycelTheme.ACCENT_DARK : hover ? MycelTheme.BORDER : MycelTheme.SURFACE);
-            String label = tabs[i] == Tab.POTIONS ? "Potions (" + allPotions.size() + ")"
-                    : "Ingredients (" + allReagents.size() + ")";
+            String label = tabs[i] == Tab.POTIONS ? Tr.s("tab.potions", allPotions.size())
+                    : Tr.s("tab.ingredients", allReagents.size());
             gfx.centeredText(font, MycelTheme.fit(font, label, tabWidth() - 4), x + tabWidth() / 2, TAB_Y + 3,
                     on ? MycelTheme.HEADING : MycelTheme.DIM);
         }
     }
 
-    static final String HAVE_LABEL = "Have all";
+    static String haveLabel() {
+        return Tr.s("have_all");
+    }
     static final int HAVE_ON = 0xFF1F4D2B;
 
     /** Chip x positions, one per form. */
@@ -658,7 +660,7 @@ public final class GuideScreen extends Screen {
         int x = MARGIN;
         for (int i = 0; i < forms.length; i++) {
             xs[i] = x;
-            x += font.width(forms[i].label) + 8 + 3;
+            x += font.width(Tr.s("form." + forms[i].label)) + 8 + 3;
         }
         return xs;
     }
@@ -667,19 +669,19 @@ public final class GuideScreen extends Screen {
         Form[] forms = Form.values();
         int[] xs = chipXs();
         for (int i = 0; i < forms.length; i++) {
-            int w = font.width(forms[i].label) + 8;
+            int w = font.width(Tr.s("form." + forms[i].label)) + 8;
             if (xs[i] + w > leftEnd()) {
                 break;
             }
             boolean on = state.form == forms[i];
             boolean hover = inside(mouseX, mouseY, xs[i], CHIP_Y, w, CHIP_H);
             gfx.fill(xs[i], CHIP_Y, xs[i] + w, CHIP_Y + CHIP_H, on ? MycelTheme.ACCENT_DARK : hover ? MycelTheme.BORDER : MycelTheme.SURFACE);
-            gfx.text(font, forms[i].label, xs[i] + 4, CHIP_Y + 2, on ? MycelTheme.HEADING : MycelTheme.DIM);
+            gfx.text(font, Tr.s("form." + forms[i].label), xs[i] + 4, CHIP_Y + 2, on ? MycelTheme.HEADING : MycelTheme.DIM);
         }
     }
 
     private int haveWidth() {
-        return font.width(HAVE_LABEL) + 10;
+        return font.width(haveLabel()) + 10;
     }
 
     private int haveX() {
@@ -692,16 +694,16 @@ public final class GuideScreen extends Screen {
         gfx.fill(haveX(), SEARCH_Y, leftEnd(), SEARCH_Y + 14,
                 state.brewableOnly ? HAVE_ON : hover ? MycelTheme.BORDER : MycelTheme.SURFACE);
         gfx.fill(haveX() + 3, SEARCH_Y + 5, haveX() + 6, SEARCH_Y + 8, state.brewableOnly ? MycelTheme.GOOD : MycelTheme.OFF);
-        gfx.text(font, HAVE_LABEL, haveX() + 8, SEARCH_Y + 3, state.brewableOnly ? MycelTheme.HEADING : MycelTheme.DIM);
+        gfx.text(font, haveLabel(), haveX() + 8, SEARCH_Y + 3, state.brewableOnly ? MycelTheme.HEADING : MycelTheme.DIM);
         if (hover) {
-            gfx.setTooltipForNextFrame(font, Component.literal("Only potions you carry every ingredient for"),
+            gfx.setTooltipForNextFrame(font, Component.literal(Tr.s("have_all.tip")),
                     mouseX, mouseY);
         }
     }
 
     private void renderGrid(GuiGraphicsExtractor gfx, int mouseX, int mouseY) {
         if (filtered.isEmpty()) {
-            String empty = state.brewableOnly ? "Nothing you can brew yet" : "Nothing matches";
+            String empty = Tr.s(state.brewableOnly ? "grid.none_brewable" : "grid.none");
             gfx.text(font, MycelTheme.fit(font, empty, leftEnd() - MARGIN), MARGIN, gridTop() + 4, MycelTheme.DIM);
             return;
         }
@@ -759,11 +761,11 @@ public final class GuideScreen extends Screen {
         if (key == null) {
             int mid = (x0 + x1) / 2;
             int y = (DETAIL_TOP + height - FOOTER) / 2 - 12;
-            gfx.text(font, potions ? "Potion guide" : "Ingredient guide", x0, TAB_Y + 5, MycelTheme.HEADING);
-            gfx.centeredText(font, potions ? "Pick a potion on the left" : "Pick an ingredient on the left",
+            gfx.text(font, Tr.s(potions ? "detail.potion_guide" : "detail.ingredient_guide"), x0, TAB_Y + 5, MycelTheme.HEADING);
+            gfx.centeredText(font, MycelTheme.fit(font, Tr.s(potions ? "detail.pick_potion" : "detail.pick_ingredient"), x1 - x0),
                     mid, y, MycelTheme.TEXT);
-            gfx.centeredText(font, MycelTheme.fit(font, potions ? "Green dot: you can brew it now"
-                    : "Green dot: you have some", x1 - x0), mid, y + 12, MycelTheme.DIM);
+            gfx.centeredText(font, MycelTheme.fit(font, Tr.s(potions ? "detail.dot_brew" : "detail.dot_have"), x1 - x0),
+                    mid, y + 12, MycelTheme.DIM);
             return;
         }
         ItemStack icon = potions ? data.bottle(key) : reagentStack(key);
@@ -773,11 +775,11 @@ public final class GuideScreen extends Screen {
         String sub;
         if (potions) {
             Route route = data.routeFromWater(key);
-            sub = route == null ? "Can't be brewed from water"
-                    : route.steps().size() + (route.steps().size() == 1 ? " step" : " steps") + " from "
-                            + PotionText.name(data.bottle(route.start()));
+            sub = route == null ? Tr.s("detail.not_from_water")
+                    : Tr.s(route.steps().size() == 1 ? "detail.steps_from.one" : "detail.steps_from", route.steps().size(),
+                            PotionText.name(data.bottle(route.start())));
         } else {
-            sub = "You have " + counts.getOrDefault(key, 0);
+            sub = Tr.s("have", counts.getOrDefault(key, 0));
         }
         gfx.text(font, MycelTheme.fit(font, sub, x1 - x0 - 20), x0 + 20, TAB_Y + 11, MycelTheme.DIM);
         if (inside(mouseX, mouseY, x0, TAB_Y + 1, 16, 16)) {
@@ -871,15 +873,15 @@ public final class GuideScreen extends Screen {
             }
         }
         gfx.fill(x0 - 2, y, x0 + 1, y + LINE_H - 1, missing.isEmpty() ? MycelTheme.GOOD : MycelTheme.ACCENT);
-        String status = missing.isEmpty() ? "You carry everything for this"
-                : "Missing: " + String.join(", ", missing);
+        String status = missing.isEmpty() ? Tr.s("status.all")
+                : Tr.s("status.missing", String.join(", ", missing));
         gfx.text(font, MycelTheme.fit(font, status, x1 - x0 - 6), x0 + 5, y + 1, missing.isEmpty() ? MycelTheme.GOOD : MycelTheme.BAD);
         y += LINE_H;
         if (parent != null) {
             int fuel = parent.getMenu().getFuel();
             int steps = route.steps().size();
-            String line = fuel > 0 ? "Stand fuel: " + fuel + (fuel == 1 ? " brew" : " brews") + " left"
-                    : "Stand has no fuel: add Blaze Powder";
+            String line = fuel > 0 ? Tr.s("status.fuel", Tr.plural(fuel, "brews"))
+                    : Tr.s("status.no_fuel");
             int color = fuel <= 0 ? MycelTheme.WARN : fuel < steps ? MycelTheme.WARN : MycelTheme.DIM;
             gfx.text(font, MycelTheme.fit(font, line, x1 - x0), x0, y + 1, color);
         }
@@ -959,7 +961,7 @@ public final class GuideScreen extends Screen {
         Form[] forms = Form.values();
         int[] xs = chipXs();
         for (int i = 0; i < forms.length; i++) {
-            if (inside(mx, my, xs[i], CHIP_Y, font.width(forms[i].label) + 8, CHIP_H)) {
+            if (inside(mx, my, xs[i], CHIP_Y, font.width(Tr.s("form." + forms[i].label)) + 8, CHIP_H)) {
                 state.form = forms[i];
                 BrewingPlusMod.debug("Filter -> form {}", state.form);
                 filter();

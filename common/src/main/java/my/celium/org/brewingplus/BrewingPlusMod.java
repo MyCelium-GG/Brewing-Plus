@@ -13,6 +13,7 @@ import my.celium.org.config.ConfigValue;
 import my.celium.org.config.MycelConfig;
 import my.celium.org.logging.MycelLog;
 import my.celium.org.metadata.ModMetadata;
+import my.celium.org.translation.ModLang;
 
 /**
  * Brewing+: a button on the brewing stand opens a guide to every potion -
@@ -28,7 +29,10 @@ import my.celium.org.metadata.ModMetadata;
 public final class BrewingPlusMod {
     public static final String ID = "brewingplus";
 
-    public static final ModMetadata META = ModMetadata.builder(ID, "Brewing+", "1.2.0")
+    /** Server messages in each player's language (assets/brewingplus/lang). */
+    public static final ModLang LANG = ModLang.of("brewingplus", BrewingPlusMod.class);
+
+    public static final ModMetadata META = ModMetadata.builder(ID, "Brewing+", "1.3.0")
             .author("MyCelium")
             .website("https://www.curseforge.com/minecraft/mc-mods/brewing-plus")
             .updateUrl("https://wiki.mycelium-gg.org/updates/brewingplus.json")

@@ -6,6 +6,14 @@ Brewing+ is versioned semantically (`MAJOR.MINOR.PATCH`).
 It runs on Minecraft 26.3, 26.2 and 26.1 (Fabric + Forge + NeoForge, Java 25) and requires
 [Mycel](https://github.com/MyCelium-GG/MyCel-Lib) (`my.celium.org`).
 
+## [1.3.0] - 2026-11-19
+
+### Added
+- In 11 languages: English, German, Spanish, French, Dutch, Brazilian Portuguese, Russian, Polish, Italian, Japanese and Simplified Chinese. Messages from the server reach each player in their own game language.
+
+### Changed
+- Needs Mycel 1.7.0.
+
 ## [1.2.0] - 2026-11-16
 
 ### Added

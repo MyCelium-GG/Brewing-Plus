@@ -95,13 +95,13 @@ public final class StandHint {
         if (bottles.isEmpty()) {
             Route route = data.routeFromWater(tracked);
             if (route == null) {
-                lines.add(new Line("No known recipe makes this", MycelTheme.BAD));
+                lines.add(new Line(Tr.s("hint.no_recipe"), MycelTheme.BAD));
             } else {
                 ItemStack start = data.bottle(route.start());
                 for (int i = 0; i < INGREDIENT_SLOT; i++) {
                     ghost(gfx, start, baseX + menu.getSlot(i).x, baseY + menu.getSlot(i).y);
                 }
-                lines.add(new Line("Add 1-3 " + PotionText.name(start), MycelTheme.TEXT));
+                lines.add(new Line(Tr.s("hint.add", PotionText.name(start)), MycelTheme.TEXT));
                 lines.add(new Line(stepsLeft(route.steps().size()), MycelTheme.DIM));
             }
         } else {
@@ -112,10 +112,10 @@ public final class StandHint {
             }
             Route route = from.equals(tracked) ? null : data.graph().route(from, tracked);
             if (from.equals(tracked)) {
-                lines.add(new Line("Done! Take your potions", MycelTheme.GOOD));
+                lines.add(new Line(Tr.s("hint.done"), MycelTheme.GOOD));
             } else if (route == null) {
-                lines.add(new Line("These bottles can't become this", MycelTheme.BAD));
-                lines.add(new Line("Start again from " + PotionText.name(startBottle(data, tracked)), MycelTheme.DIM));
+                lines.add(new Line(Tr.s("hint.cant_become"), MycelTheme.BAD));
+                lines.add(new Line(Tr.s("hint.start_again", PotionText.name(startBottle(data, tracked))), MycelTheme.DIM));
             } else {
                 Edge next = route.steps().get(0);
                 String pick = BrewGraph.pickReagents(route, counts).get(0);
@@ -124,23 +124,23 @@ public final class StandHint {
                 ItemStack inSlot = ingredientSlot.getItem();
                 if (inSlot.isEmpty()) {
                     ghost(gfx, reagent, baseX + ingredientSlot.x, baseY + ingredientSlot.y);
-                    lines.add(new Line("Next: " + PotionText.name(reagent), MycelTheme.TEXT));
-                    lines.add(new Line(pick == null ? "You have none" : "You have " + counts.getOrDefault(pick, 0),
+                    lines.add(new Line(Tr.s("hint.next", PotionText.name(reagent)), MycelTheme.TEXT));
+                    lines.add(new Line(pick == null ? Tr.s("have_none") : Tr.s("have", counts.getOrDefault(pick, 0)),
                             pick == null ? MycelTheme.BAD : MycelTheme.DIM));
                 } else if (next.reagents().contains(BrewingData.idOf(inSlot.getItem()))) {
-                    lines.add(new Line("Brewing " + PotionText.name(inSlot), MycelTheme.GOOD));
+                    lines.add(new Line(Tr.s("hint.brewing", PotionText.name(inSlot)), MycelTheme.GOOD));
                 } else {
-                    lines.add(new Line("Wrong ingredient", MycelTheme.BAD));
-                    lines.add(new Line("Use " + PotionText.name(reagent), MycelTheme.TEXT));
+                    lines.add(new Line(Tr.s("hint.wrong"), MycelTheme.BAD));
+                    lines.add(new Line(Tr.s("hint.use", PotionText.name(reagent)), MycelTheme.TEXT));
                 }
                 lines.add(new Line(stepsLeft(route.steps().size()), MycelTheme.DIM));
             }
             if (mixed) {
-                lines.add(new Line("Mixed bottles: following the first", MycelTheme.WARN));
+                lines.add(new Line(Tr.s("hint.mixed"), MycelTheme.WARN));
             }
         }
         if (menu.getFuel() <= 0 && menu.getSlot(FUEL_SLOT).getItem().isEmpty()) {
-            lines.add(new Line("No fuel: add Blaze Powder", MycelTheme.WARN));
+            lines.add(new Line(Tr.s("no_fuel"), MycelTheme.WARN));
         }
         card(gfx, font, lines, baseX, baseY, imageWidth, stand.width - Math.round(pose.m20()));
     }
@@ -151,7 +151,7 @@ public final class StandHint {
     }
 
     private static String stepsLeft(int steps) {
-        return steps == 1 ? "1 step left" : steps + " steps left";
+        return steps == 1 ? Tr.s("last_step") : Tr.s("steps_left", steps);
     }
 
     /** Vanilla-style ghost item: the item, faded towards the slot color. */

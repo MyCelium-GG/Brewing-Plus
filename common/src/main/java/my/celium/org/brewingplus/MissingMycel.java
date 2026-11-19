@@ -51,7 +51,7 @@ public final class MissingMycel {
 
     /** {@code Brewing+ » Mycel is missing. ... [Download Mycel]} */
     public static Component message() {
-        MutableComponent link = Component.literal("[Download Mycel]").withStyle(Style.EMPTY
+        MutableComponent link = Component.translatableWithFallback("brewingplus.missing_mycel.download", "[Download Mycel]").withStyle(Style.EMPTY
                 .withColor(LINK)
                 .withUnderlined(true)
                 .withClickEvent(new ClickEvent.OpenUrl(URI.create(MYCEL_URL)))
@@ -59,8 +59,9 @@ public final class MissingMycel {
         return Component.empty()
                 .append(Component.literal(NAME).withStyle(Style.EMPTY.withColor(RED).withBold(true)))
                 .append(Component.literal(" » ").withStyle(Style.EMPTY.withColor(FAINT)))
-                .append(Component.literal("Mycel is missing. " + NAME
-                        + " needs the Mycel library to work and stays off until it is installed. ")
+                .append(Component.translatableWithFallback("brewingplus.missing_mycel",
+                        "Mycel is missing. %s needs the Mycel library to work and stays off until it is installed.", NAME)
+                        .append(" ")
                         .withStyle(Style.EMPTY.withColor(BODY)))
                 .append(link);
     }

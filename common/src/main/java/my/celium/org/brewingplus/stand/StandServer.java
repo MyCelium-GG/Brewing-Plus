@@ -132,10 +132,10 @@ public final class StandServer {
             return;
         }
         // Without the mod on the client: a plain chat line from the server.
-        player.sendSystemMessage(VOICE.note(readyText(stand), TextUtil.muted("   " + where(player, level, stand.getBlockPos()))));
+        player.sendSystemMessage(VOICE.note(readyText(player, stand), TextUtil.muted("   " + where(player, level, stand.getBlockPos()))));
     }
 
-    private static MutableComponent readyText(BrewingStandBlockEntity stand) {
+    private static MutableComponent readyText(ServerPlayer player, BrewingStandBlockEntity stand) {
         ItemStack first = ItemStack.EMPTY;
         int count = 0;
         for (int i = 0; i < 3; i++) {
@@ -147,25 +147,24 @@ public final class StandServer {
                 }
             }
         }
-        return Component.empty().append(Component.literal(count + " x ")).append(first.getHoverName().copy())
-                .append(Component.literal(count == 1 ? " is ready" : " are ready"));
+        return BrewingPlusMod.LANG.text(player, count == 1 ? "ready.one" : "ready", count, first.getHoverName().copy());
     }
 
     /** "12 blocks north", or "in another dimension". */
     static String where(ServerPlayer player, ServerLevel level, BlockPos pos) {
         if (player.level() != level) {
-            return "in another dimension";
+            return BrewingPlusMod.LANG.get(player, "where.other_dimension");
         }
         double dx = pos.getX() + 0.5 - player.getX();
         double dz = pos.getZ() + 0.5 - player.getZ();
         int distance = (int) Math.round(Math.sqrt(dx * dx + dz * dz));
         if (distance < 2) {
-            return "right here";
+            return BrewingPlusMod.LANG.get(player, "where.here");
         }
         String dir = Math.abs(dx) > Math.abs(dz) * 2 ? (dx > 0 ? "east" : "west")
                 : Math.abs(dz) > Math.abs(dx) * 2 ? (dz > 0 ? "south" : "north")
                 : (dz > 0 ? "south" : "north") + (dx > 0 ? "east" : "west");
-        return distance + " blocks " + dir;
+        return BrewingPlusMod.LANG.get(player, "where.blocks", distance, BrewingPlusMod.LANG.get(player, "dir." + dir));
     }
 
     private static void sendNearby(MinecraftServer server) {
