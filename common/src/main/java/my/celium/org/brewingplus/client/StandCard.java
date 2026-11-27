@@ -23,7 +23,7 @@ public final class StandCard {
     static final int PAD_X = 8;
     static final int PAD_Y = 5;
     static final int LINE_H = 12;
-    static final int MAX_W = 300;
+    static final int MAX_W = 380;
 
     private record Line(String text, int color) {
     }
@@ -90,9 +90,10 @@ public final class StandCard {
         }
 
         Font font = minecraft.font;
+        int max = Math.max(120, Math.min(MAX_W, gfx.guiWidth() - 2 * PAD_X - 16));
         int width = 0;
         for (Line line : lines) {
-            width = Math.max(width, Math.min(MAX_W, font.width(line.text())));
+            width = Math.max(width, Math.min(max, font.width(line.text())));
         }
         int center = gfx.guiWidth() / 2;
         int x0 = center - width / 2 - PAD_X;
@@ -101,7 +102,7 @@ public final class StandCard {
         VanillaUi.tooltip(gfx, x0, TOP_Y, x1, y1);
         int y = TOP_Y + PAD_Y + 1;
         for (Line line : lines) {
-            gfx.centeredText(font, VanillaUi.fit(font, line.text(), MAX_W), center, y, line.color());
+            gfx.centeredText(font, VanillaUi.fit(font, line.text(), max), center, y, line.color());
             y += LINE_H;
         }
     }

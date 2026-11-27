@@ -2,9 +2,11 @@
 
 Never look up a potion recipe again. Click the potion button on the brewing stand, pick any potion, and see its full recipe from a water bottle, which ingredients you carry and what to add next. Track it and the stand shows the next ingredient right in its slot. No keybinds.
 
-**New in 1.2.0:** walk away while it brews. When your potions are ready, a chat line tells you what's ready, where the stand is, and the next step of the potion you're tracking. Look at any brewing stand to see what's brewing, the time left and the fuel.
+**New in 1.4.0:** the guide looks like a vanilla screen: a grey window with normal Minecraft buttons, slots and checkbox. On Fabric, the ready message and the stand card work again.
 
-![Looking at a brewing stand: 3 Water Bottles, Brewing with Nether Wart 0:15, Fuel: 59 brews, Next for Potion of Swiftness: Sugar](https://wiki.mycelium-gg.org/brewingplus/img/stand-card.png?v=120)
+Walk away while it brews. When your potions are ready, a chat line tells you what's ready, where the stand is, and the next step of the potion you're tracking. Look at any brewing stand to see what's brewing, the time left and the fuel.
+
+![Looking at a brewing stand: 3 Water Bottles, Brewing with Nether Wart 0:16, Fuel: 59 brews, Next for Splash Potion of Night Vision: Golden Carrot](https://wiki.mycelium-gg.org/brewingplus/img/stand-card.png?v=140)
 
 ![Chat: Ready: 3 x Awkward Potion, 14 blocks south. Next for Potion of Swiftness: Sugar (last step)](https://wiki.mycelium-gg.org/brewingplus/img/ready-chat.png?v=120)
 
@@ -14,12 +16,12 @@ Never look up a potion recipe again. Click the potion button on the brewing stan
 - Search by potion or ingredient ("carrot" finds Night Vision)
 - Ingredient lookup: every recipe an ingredient is used in
 - Reads your world's real recipes in singleplayer, datapacks included
-- New: a chat line when your brew is ready, with the next step of the tracked potion
-- New: look at a brewing stand for its bottles, time left and fuel
+- A chat line when your brew is ready, with the next step of the tracked potion
+- Look at a brewing stand for its bottles, time left and fuel
 
-![The Brewing+ guide showing every step of Splash Potion of Night Vision](https://wiki.mycelium-gg.org/brewingplus/img/guide-splash-night-vision.png)
+![The Brewing+ guide showing every step of Splash Potion of Night Vision](https://wiki.mycelium-gg.org/brewingplus/img/guide-splash-night-vision.png?v=140)
 
-![A tracked potion: the brewing stand shows the next ingredient and how many steps are left](https://wiki.mycelium-gg.org/brewingplus/img/stand-hint-next.png)
+![A tracked potion: the brewing stand shows the next ingredient and how many steps are left](https://wiki.mycelium-gg.org/brewingplus/img/stand-hint-next.png?v=140)
 
 ## Install
 

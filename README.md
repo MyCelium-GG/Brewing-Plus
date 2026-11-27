@@ -19,13 +19,13 @@
 
 <img src="https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/2f9a1ae9c6d6/docs/img/banners/about.svg" alt="Brewing+ Click the potion button on the brewing stand to open a guide: every potion the world can brew, its full recipe from a water bottle, which ingredients you carry, and what each ingredient does. Track a potion and the stand shows the next ingredient to add. Walk away while it brews: Brewing+ tells you when your potions are ready." width="100%">
 
-![Looking at a brewing stand: 3 Water Bottles, Brewing with Nether Wart 0:15, Fuel: 59 brews, Next for Potion of Swiftness: Sugar](https://wiki.mycelium-gg.org/brewingplus/img/stand-card.png?v=120)
+![Looking at a brewing stand: 3 Water Bottles, Brewing with Nether Wart 0:16, Fuel: 59 brews, Next for Splash Potion of Night Vision: Golden Carrot](https://wiki.mycelium-gg.org/brewingplus/img/stand-card.png?v=140)
 
 ![The guide](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/2f9a1ae9c6d6/docs/img/banners/the-guide.svg)
 
 <img src="https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/2f9a1ae9c6d6/docs/img/banners/the-guide-box.svg" alt="The button: A potion button sits in the brewing stand's corner. It opens the guide without closing the stand; Back to stand (or Esc) returns with the bottles still in place. Potions: Every potion the world's recipes make, drinkable, splash and lingering. Filter by bottle type, search by name or ingredient (carrot finds Night Vision), or tick Have all for what you can brew right now. Recipes: Pick " width="100%">
 
-![The Brewing+ guide showing every step of Splash Potion of Night Vision](https://wiki.mycelium-gg.org/brewingplus/img/guide-splash-night-vision.png)
+![The Brewing+ guide showing every step of Splash Potion of Night Vision](https://wiki.mycelium-gg.org/brewingplus/img/guide-splash-night-vision.png?v=140)
 
 ![Your potions are ready](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/2f9a1ae9c6d6/docs/img/banners/your-potions-are-ready.svg)
 
@@ -37,7 +37,7 @@
 
 <img src="https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/2f9a1ae9c6d6/docs/img/banners/the-stand-card-box.svg" alt="Look at any brewing stand to see its bottles, what it is brewing and the time left, how many brews of fuel are left, and the tracked potion's next step. When it is not brewing, the card says why, for example when the ingredient does nothing to these bottles." width="100%">
 
-![After the brew: 3 Awkward Potions, Not brewing: Nether Wart does nothing here, Fuel: 59 brews](https://wiki.mycelium-gg.org/brewingplus/img/stand-card-next.png?v=120)
+![After the brew: 3 Awkward Potions, Not brewing: Nether Wart does nothing here, Fuel: 59 brews](https://wiki.mycelium-gg.org/brewingplus/img/stand-card-next.png?v=140)
 
 ![Where recipes come from](https://raw.githubusercontent.com/MyCelium-GG/Brewing-Plus/2f9a1ae9c6d6/docs/img/banners/where-recipes-come-from.svg)
 

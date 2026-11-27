@@ -28,7 +28,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.BrewingStandScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -50,7 +49,7 @@ import net.minecraft.world.item.alchemy.Potion;
  * closing it returns there with the bottles in place. Client only.
  */
 public final class GuideScreen extends Screen {
-    static final int MAX_W = 360;
+    static final int MAX_W = 384;
     static final int MAX_H = 232;
     static final int PAD = 8;
     static final int CELL = 18;
@@ -60,7 +59,6 @@ public final class GuideScreen extends Screen {
     static final int LINE_H = 11;
     static final int SUMMARY_LINES = 2;
     static final int BUTTON_H = 20;
-    /** Width of vanilla's list scroller ({@code widget/scroller}). */
     static final int THIN_SCROLLER = 6;
 
     private final BrewingStandScreen parent;
@@ -533,7 +531,7 @@ public final class GuideScreen extends Screen {
         ph = Math.min(MAX_H, height - 8);
         px = (width - pw) / 2;
         py = (height - ph) / 2;
-        cols = Math.max(4, Math.min(MAX_COLUMNS, (pw * 46 / 100 - 2 * PAD - VanillaUi.SCROLLER_W - 4) / CELL));
+        cols = Math.max(4, Math.min(MAX_COLUMNS, (pw * 50 / 100 - 2 * PAD - VanillaUi.SCROLLER_W - 4) / CELL));
 
         int lw = leftWidth();
         int tabW = (lw - 2) / 2;
@@ -542,8 +540,13 @@ public final class GuideScreen extends Screen {
             Tab tab = tabs[i];
             String label = tab == Tab.POTIONS ? Tr.s("tab.potions", allPotions.size())
                     : Tr.s("tab.ingredients", allReagents.size());
+            int w = i == 0 ? tabW : lw - tabW - 2;
+            if (font.width(label) > w - 8) {
+                // "Ingredients (21)" does not fit a narrow tab: drop the count rather than cut the word.
+                label = label.replaceAll("\\s*[(（]\\d+[)）]\\s*$", "");
+            }
             Button button = Button.builder(Component.literal(label), b -> showTab(tab))
-                    .bounds(leftX() + i * (tabW + 2), tabY(), i == 0 ? tabW : lw - tabW - 2, BUTTON_H).build();
+                    .bounds(leftX() + i * (tabW + 2), tabY(), w, BUTTON_H).build();
             button.active = state.tab != tab;
             addRenderableWidget(button);
         }
@@ -950,19 +953,18 @@ public final class GuideScreen extends Screen {
         }
     }
 
-    /** Vanilla's list scroller (the one in the world and server lists). */
+    /** A slim scrollbar in the panel's own bevel, for the detail list. */
     private void drawThinScrollbar(GuiGraphicsExtractor gfx, int x, int top, int height, int scroll, int maxScroll) {
         if (maxScroll <= 0) {
             return;
         }
         int thumb = Math.max(12, height * height / (height + maxScroll * ROW_H));
         int y = top + (height - thumb) * scroll / maxScroll;
-        gfx.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER_BACKGROUND, x, top, THIN_SCROLLER, height);
-        gfx.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER, x, y, THIN_SCROLLER, thumb);
+        VanillaUi.inset(gfx, x, top, THIN_SCROLLER, height, VanillaUi.SLOT_FILL);
+        gfx.fill(x, y, x + THIN_SCROLLER, y + thumb, VanillaUi.SHADOW);
+        gfx.fill(x, y, x + THIN_SCROLLER - 1, y + thumb - 1, VanillaUi.LIGHT);
+        gfx.fill(x + 1, y + 1, x + THIN_SCROLLER - 1, y + thumb - 1, VanillaUi.BODY);
     }
-
-    private static final Identifier SCROLLER = Identifier.withDefaultNamespace("widget/scroller");
-    private static final Identifier SCROLLER_BACKGROUND = Identifier.withDefaultNamespace("widget/scroller_background");
 
     private static boolean inside(double mx, double my, int x, int y, int w, int h) {
         return mx >= x && mx < x + w && my >= y && my < y + h;

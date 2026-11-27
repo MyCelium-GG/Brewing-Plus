@@ -6,6 +6,15 @@ Brewing+ is versioned semantically (`MAJOR.MINOR.PATCH`).
 It runs on Minecraft 26.3, 26.2 and 26.1 (Fabric + Forge + NeoForge, Java 25) and requires
 [Mycel](https://github.com/MyCelium-GG/MyCel-Lib) (`my.celium.org`).
 
+## [1.4.0] - 2026-11-27
+
+### Changed
+- The guide looks like a vanilla screen now: a grey window in the middle of the screen with normal Minecraft buttons, inventory slots, a checkbox for "Have all" and the creative inventory's scrollbar. One button switches the bottle type (All, Potion, Splash, Lingering).
+- The hint beside the brewing stand uses the same grey panel as the stand, and the card you see when looking at a stand is drawn like an item tooltip. The card is wider, so long next steps fit.
+
+### Fixed
+- Fabric: the look-at card and the "your potions are ready" message never showed, because the mod's network messages were not registered on Fabric.
+
 ## [1.3.0] - 2026-11-19
 
 ### Added
