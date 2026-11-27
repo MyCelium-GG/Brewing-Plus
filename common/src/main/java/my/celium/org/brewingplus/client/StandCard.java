@@ -6,7 +6,6 @@ import java.util.List;
 import my.celium.org.brewingplus.BrewingPlusMod;
 import my.celium.org.brewingplus.stand.StandInfo;
 import my.celium.org.client.MycelScreens;
-import my.celium.org.client.MycelTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -25,7 +24,6 @@ public final class StandCard {
     static final int PAD_Y = 5;
     static final int LINE_H = 12;
     static final int MAX_W = 300;
-    static final int BOX = 0xE6171717;
 
     private record Line(String text, int color) {
     }
@@ -65,29 +63,29 @@ public final class StandCard {
         }
         BrewingData data = BrewingData.get();
         List<Line> lines = new ArrayList<>();
-        lines.add(new Line(minecraft.level.getBlockState(pos).getBlock().getName().getString(), MycelTheme.ACCENT));
+        lines.add(new Line(minecraft.level.getBlockState(pos).getBlock().getName().getString(), VanillaUi.TIP_TITLE));
         List<String> filled = stand.filled();
         if (filled.isEmpty()) {
-            lines.add(new Line(Tr.s("card.no_bottles"), MycelTheme.DIM));
+            lines.add(new Line(Tr.s("card.no_bottles"), VanillaUi.TIP_DIM));
         } else {
-            lines.add(new Line(StandClient.counts(data, filled), MycelTheme.TEXT));
+            lines.add(new Line(StandClient.counts(data, filled), VanillaUi.TIP_TEXT));
         }
         if (stand.brewTime() > 0 && !stand.ingredient().isEmpty()) {
             lines.add(new Line(Tr.s("card.brewing", StandClient.itemName(stand.ingredient())) + "   "
-                    + time(stand.brewTime()), MycelTheme.HEADING));
+                    + time(stand.brewTime()), VanillaUi.TIP_TEXT));
         } else if (!filled.isEmpty()) {
             lines.add(new Line(stand.ingredient().isEmpty() ? Tr.s("card.waiting")
-                    : Tr.s("card.does_nothing", StandClient.itemName(stand.ingredient())), MycelTheme.DIM));
+                    : Tr.s("card.does_nothing", StandClient.itemName(stand.ingredient())), VanillaUi.TIP_DIM));
         }
         if (stand.fuelBrews() <= 0) {
-            lines.add(new Line(Tr.s("no_fuel"), MycelTheme.WARN));
+            lines.add(new Line(Tr.s("no_fuel"), VanillaUi.TIP_WARN));
         } else {
-            lines.add(new Line(Tr.s("card.fuel", Tr.plural(stand.fuelBrews(), "brews")), MycelTheme.DIM));
+            lines.add(new Line(Tr.s("card.fuel", Tr.plural(stand.fuelBrews(), "brews")), VanillaUi.TIP_DIM));
         }
         if (!filled.isEmpty()) {
             String next = StandClient.nextStep(data, filled.get(0), stand.brewTime() > 0 ? stand.ingredient() : "");
             if (next != null) {
-                lines.add(new Line(next, MycelTheme.TEXT));
+                lines.add(new Line(next, VanillaUi.TIP_TEXT));
             }
         }
 
@@ -100,12 +98,10 @@ public final class StandCard {
         int x0 = center - width / 2 - PAD_X;
         int x1 = center + width / 2 + PAD_X;
         int y1 = TOP_Y + PAD_Y * 2 + lines.size() * LINE_H;
-        gfx.fill(x0 + 2, TOP_Y + 2, x1 + 2, y1 + 2, MycelTheme.SHADOW);
-        gfx.fill(x0, TOP_Y, x1, y1, MycelTheme.BORDER);
-        gfx.fill(x0 + 1, TOP_Y + 1, x1 - 1, y1 - 1, BOX);
+        VanillaUi.tooltip(gfx, x0, TOP_Y, x1, y1);
         int y = TOP_Y + PAD_Y + 1;
         for (Line line : lines) {
-            gfx.centeredText(font, MycelTheme.fit(font, line.text(), MAX_W), center, y, line.color());
+            gfx.centeredText(font, VanillaUi.fit(font, line.text(), MAX_W), center, y, line.color());
             y += LINE_H;
         }
     }

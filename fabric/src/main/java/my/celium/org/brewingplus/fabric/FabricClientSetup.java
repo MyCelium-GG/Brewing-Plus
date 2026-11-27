@@ -5,6 +5,7 @@ import my.celium.org.brewingplus.client.StandHint;
 import my.celium.org.brewingplus.BrewingPlusMod;
 import my.celium.org.brewingplus.client.StandCard;
 import my.celium.org.brewingplus.client.StandClient;
+import my.celium.org.fabric.FabricNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.resources.Identifier;
@@ -18,6 +19,7 @@ final class FabricClientSetup {
     }
 
     static void start() {
+        FabricNetworking.flushClient();
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(BrewingPlusMod.ID, "stand_card"),
                 (gfx, tracker) -> StandCard.render(gfx));
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> StandClient.clear());

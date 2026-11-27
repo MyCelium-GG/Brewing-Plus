@@ -10,7 +10,6 @@ import my.celium.org.brewingplus.BrewGraph;
 import my.celium.org.brewingplus.BrewGraph.Edge;
 import my.celium.org.brewingplus.BrewGraph.Route;
 import my.celium.org.brewingplus.BrewingPlusMod;
-import my.celium.org.client.MycelTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -80,7 +79,7 @@ public final class StandHint {
         int baseY = top - Math.round(pose.m21());
 
         List<Line> lines = new ArrayList<>();
-        lines.add(new Line(PotionText.full(data.bottle(tracked)), MycelTheme.HEADING));
+        lines.add(new Line(PotionText.full(data.bottle(tracked)), VanillaUi.LABEL));
 
         List<ItemStack> bottles = new ArrayList<>();
         for (int i = 0; i < INGREDIENT_SLOT; i++) {
@@ -95,14 +94,14 @@ public final class StandHint {
         if (bottles.isEmpty()) {
             Route route = data.routeFromWater(tracked);
             if (route == null) {
-                lines.add(new Line(Tr.s("hint.no_recipe"), MycelTheme.BAD));
+                lines.add(new Line(Tr.s("hint.no_recipe"), VanillaUi.BAD));
             } else {
                 ItemStack start = data.bottle(route.start());
                 for (int i = 0; i < INGREDIENT_SLOT; i++) {
                     ghost(gfx, start, baseX + menu.getSlot(i).x, baseY + menu.getSlot(i).y);
                 }
-                lines.add(new Line(Tr.s("hint.add", PotionText.name(start)), MycelTheme.TEXT));
-                lines.add(new Line(stepsLeft(route.steps().size()), MycelTheme.DIM));
+                lines.add(new Line(Tr.s("hint.add", PotionText.name(start)), VanillaUi.LABEL));
+                lines.add(new Line(stepsLeft(route.steps().size()), VanillaUi.DIM));
             }
         } else {
             String from = BrewingData.keyOf(bottles.get(0));
@@ -112,10 +111,10 @@ public final class StandHint {
             }
             Route route = from.equals(tracked) ? null : data.graph().route(from, tracked);
             if (from.equals(tracked)) {
-                lines.add(new Line(Tr.s("hint.done"), MycelTheme.GOOD));
+                lines.add(new Line(Tr.s("hint.done"), VanillaUi.GOOD));
             } else if (route == null) {
-                lines.add(new Line(Tr.s("hint.cant_become"), MycelTheme.BAD));
-                lines.add(new Line(Tr.s("hint.start_again", PotionText.name(startBottle(data, tracked))), MycelTheme.DIM));
+                lines.add(new Line(Tr.s("hint.cant_become"), VanillaUi.BAD));
+                lines.add(new Line(Tr.s("hint.start_again", PotionText.name(startBottle(data, tracked))), VanillaUi.DIM));
             } else {
                 Edge next = route.steps().get(0);
                 String pick = BrewGraph.pickReagents(route, counts).get(0);
@@ -124,23 +123,23 @@ public final class StandHint {
                 ItemStack inSlot = ingredientSlot.getItem();
                 if (inSlot.isEmpty()) {
                     ghost(gfx, reagent, baseX + ingredientSlot.x, baseY + ingredientSlot.y);
-                    lines.add(new Line(Tr.s("hint.next", PotionText.name(reagent)), MycelTheme.TEXT));
+                    lines.add(new Line(Tr.s("hint.next", PotionText.name(reagent)), VanillaUi.LABEL));
                     lines.add(new Line(pick == null ? Tr.s("have_none") : Tr.s("have", counts.getOrDefault(pick, 0)),
-                            pick == null ? MycelTheme.BAD : MycelTheme.DIM));
+                            pick == null ? VanillaUi.BAD : VanillaUi.DIM));
                 } else if (next.reagents().contains(BrewingData.idOf(inSlot.getItem()))) {
-                    lines.add(new Line(Tr.s("hint.brewing", PotionText.name(inSlot)), MycelTheme.GOOD));
+                    lines.add(new Line(Tr.s("hint.brewing", PotionText.name(inSlot)), VanillaUi.GOOD));
                 } else {
-                    lines.add(new Line(Tr.s("hint.wrong"), MycelTheme.BAD));
-                    lines.add(new Line(Tr.s("hint.use", PotionText.name(reagent)), MycelTheme.TEXT));
+                    lines.add(new Line(Tr.s("hint.wrong"), VanillaUi.BAD));
+                    lines.add(new Line(Tr.s("hint.use", PotionText.name(reagent)), VanillaUi.LABEL));
                 }
-                lines.add(new Line(stepsLeft(route.steps().size()), MycelTheme.DIM));
+                lines.add(new Line(stepsLeft(route.steps().size()), VanillaUi.DIM));
             }
             if (mixed) {
-                lines.add(new Line(Tr.s("hint.mixed"), MycelTheme.WARN));
+                lines.add(new Line(Tr.s("hint.mixed"), VanillaUi.WARN));
             }
         }
         if (menu.getFuel() <= 0 && menu.getSlot(FUEL_SLOT).getItem().isEmpty()) {
-            lines.add(new Line(Tr.s("no_fuel"), MycelTheme.WARN));
+            lines.add(new Line(Tr.s("no_fuel"), VanillaUi.WARN));
         }
         card(gfx, font, lines, baseX, baseY, imageWidth, stand.width - Math.round(pose.m20()));
     }
@@ -191,13 +190,12 @@ public final class StandHint {
         int h = 18 + lineCount * LINE_H + 4;
         int x0 = rightRoom >= leftRoom ? baseX + imageWidth + CARD_GAP : baseX - CARD_GAP - w;
         int y0 = baseY;
-        MycelTheme.panel(gfx, x0, y0, x0 + w, y0 + h);
-        gfx.fill(x0 + 2, y0 + 2, x0 + w - 2, y0 + 14, MycelTheme.ACCENT_DARK);
-        gfx.text(font, "Brewing+", x0 + 6, y0 + 4, MycelTheme.HEADING);
+        VanillaUi.panel(gfx, x0, y0, w, h);
+        gfx.text(font, "Brewing+", x0 + 6, y0 + 6, VanillaUi.LABEL, false);
         int y = y0 + 18;
         for (int i = 0; i < lines.size(); i++) {
             for (FormattedCharSequence part : wrapped.get(i)) {
-                gfx.text(font, part, x0 + 6, y, lines.get(i).color());
+                gfx.text(font, part, x0 + 6, y, lines.get(i).color(), false);
                 y += LINE_H;
             }
         }

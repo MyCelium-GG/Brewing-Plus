@@ -18,15 +18,17 @@ import my.celium.org.brewingplus.BrewingPlusMod;
 import my.celium.org.brewingplus.client.GuideState.Form;
 import my.celium.org.brewingplus.client.GuideState.Tab;
 import my.celium.org.client.MycelScreens;
-import my.celium.org.client.MycelTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.BrewingStandScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -48,20 +50,18 @@ import net.minecraft.world.item.alchemy.Potion;
  * closing it returns there with the bottles in place. Client only.
  */
 public final class GuideScreen extends Screen {
-    static final int TITLE_BAR = 18;
-    static final int MARGIN = 8;
+    static final int MAX_W = 360;
+    static final int MAX_H = 232;
+    static final int PAD = 8;
     static final int CELL = 18;
+    static final int MAX_COLUMNS = 8;
     static final int ROW_H = 22;
     static final int HEADER_H = 14;
-    static final int FOOTER = 32;
-    static final int TAB_Y = 24;
-    static final int TAB_H = 14;
-    static final int SEARCH_Y = 42;
-    static final int CHIP_Y = 60;
-    static final int CHIP_H = 12;
-    static final int DETAIL_TOP = 50;
-    static final int SUMMARY_LINES = 2;
     static final int LINE_H = 11;
+    static final int SUMMARY_LINES = 2;
+    static final int BUTTON_H = 20;
+    /** Width of vanilla's list scroller ({@code widget/scroller}). */
+    static final int THIN_SCROLLER = 6;
 
     private final BrewingStandScreen parent;
     private final GuideState state = GuideState.CURRENT;
@@ -75,6 +75,14 @@ public final class GuideScreen extends Screen {
     private int rowScroll;
     private EditBox search;
     private Button trackButton;
+    private Button formButton;
+
+    /** The window, centred and sized to the screen in {@link #init()}. */
+    private int px;
+    private int py;
+    private int pw;
+    private int ph;
+    private int cols = MAX_COLUMNS;
 
     public GuideScreen(BrewingStandScreen parent) {
         super(Component.literal("Brewing+"));
@@ -257,12 +265,12 @@ public final class GuideScreen extends Screen {
         String badge;
         ItemStack icon = ItemStack.EMPTY;
         String text = "";
-        int color = MycelTheme.TEXT;
+        int color = VanillaUi.LABEL;
         ItemStack icon2 = ItemStack.EMPTY;
         String text2 = "";
-        int color2 = MycelTheme.TEXT;
+        int color2 = VanillaUi.LABEL;
         String right = "";
-        int rightColor = MycelTheme.DIM;
+        int rightColor = VanillaUi.DIM;
         /** Click target: a bottle to show on the potions page. */
         String bottle;
         /** Click target: a reagent to show on the ingredients page. */
@@ -272,7 +280,7 @@ public final class GuideScreen extends Screen {
             Row row = new Row();
             row.header = true;
             row.text = text;
-            row.color = MycelTheme.DIM;
+            row.color = VanillaUi.DIM;
             return row;
         }
 
@@ -305,14 +313,14 @@ public final class GuideScreen extends Screen {
         howTo.right = Tr.s("guide.three_bottles");
         out.add(howTo);
         if (route == null) {
-            out.add(Row.note(Tr.s("guide.no_chain"), MycelTheme.BAD));
+            out.add(Row.note(Tr.s("guide.no_chain"), VanillaUi.BAD));
         } else {
             Row start = new Row();
             start.icon = data.bottle(route.start());
             start.text = Tr.s("guide.start", PotionText.name(start.icon));
             int bottles = bottleCount(route.start());
             start.right = Tr.s("guide.have", bottles);
-            start.rightColor = bottles > 0 ? MycelTheme.GOOD : MycelTheme.DIM;
+            start.rightColor = bottles > 0 ? VanillaUi.GOOD : VanillaUi.DIM;
             out.add(start);
             List<String> picks = BrewGraph.pickReagents(route, counts);
             for (int i = 0; i < route.steps().size(); i++) {
@@ -323,12 +331,12 @@ public final class GuideScreen extends Screen {
                 row.badge = String.valueOf(i + 1);
                 row.icon = data.reagent(reagent);
                 row.text = PotionText.name(row.icon) + (step.reagents().size() > 1 ? " (" + Tr.s("guide.or_other") + ")" : "");
-                row.color = pick != null ? MycelTheme.GOOD : MycelTheme.BAD;
+                row.color = pick != null ? VanillaUi.GOOD : VanillaUi.BAD;
                 row.icon2 = data.bottle(step.to());
                 row.text2 = "→ " + PotionText.full(row.icon2);
                 int have = counts.getOrDefault(reagent, 0);
                 row.right = "×" + have;
-                row.rightColor = have > 0 ? MycelTheme.GOOD : MycelTheme.BAD;
+                row.rightColor = have > 0 ? VanillaUi.GOOD : VanillaUi.BAD;
                 row.reagent = reagent;
                 out.add(row);
             }
@@ -367,7 +375,7 @@ public final class GuideScreen extends Screen {
         Row row = new Row();
         row.icon = reagent;
         row.text = "+ " + PotionText.name(reagent);
-        row.color = counts.getOrDefault(reagentId, 0) > 0 ? MycelTheme.TEXT : MycelTheme.DIM;
+        row.color = counts.getOrDefault(reagentId, 0) > 0 ? VanillaUi.LABEL : VanillaUi.DIM;
         row.icon2 = data.bottle(to);
         row.text2 = "→ " + PotionText.full(row.icon2);
         row.bottle = to;
@@ -378,9 +386,9 @@ public final class GuideScreen extends Screen {
         List<Edge> uses = new ArrayList<>(data.graph().edgesUsing(reagent));
         if (uses.isEmpty()) {
             out.add(Row.header(Tr.s("guide.unknown")));
-            out.add(Row.note(Tr.s("guide.unknown.1"), MycelTheme.TEXT));
-            out.add(Row.note(Tr.s("guide.unknown.2"), MycelTheme.TEXT));
-            out.add(Row.note(Tr.s("guide.unknown.3"), MycelTheme.DIM));
+            out.add(Row.note(Tr.s("guide.unknown.1"), VanillaUi.LABEL));
+            out.add(Row.note(Tr.s("guide.unknown.2"), VanillaUi.LABEL));
+            out.add(Row.note(Tr.s("guide.unknown.3"), VanillaUi.DIM));
             return;
         }
         uses.sort(Comparator.comparingInt((Edge e) -> formOrder(e.from()))
@@ -398,23 +406,186 @@ public final class GuideScreen extends Screen {
         }
     }
 
+
+    // ---------------------------------------------------------------- layout
+
+    private int leftX() {
+        return px + PAD;
+    }
+
+    /** Grid plus the creative-style scrollbar beside it. */
+    private int leftWidth() {
+        return cols * CELL + 2 + VanillaUi.SCROLLER_W + 2;
+    }
+
+    private int tabY() {
+        return py + 17;
+    }
+
+    private int searchY() {
+        return tabY() + BUTTON_H + 4;
+    }
+
+    private int filterY() {
+        return searchY() + 18;
+    }
+
+    private int gridTop() {
+        return state.tab == Tab.POTIONS ? filterY() + 21 : filterY();
+    }
+
+    private int columns() {
+        return cols;
+    }
+
+    private int gridLeft() {
+        return leftX();
+    }
+
+    private int gridRows() {
+        return Math.max(1, (py + ph - PAD - gridTop()) / CELL);
+    }
+
+    private int maxGridScroll() {
+        int total = (filtered.size() + columns() - 1) / columns();
+        return Math.max(0, total - gridRows());
+    }
+
+    private int rightX() {
+        return leftX() + leftWidth() + PAD;
+    }
+
+    private int rightEnd() {
+        return px + pw - PAD;
+    }
+
+    private int boxTop() {
+        return tabY();
+    }
+
+    private int boxBottom() {
+        return py + ph - PAD - BUTTON_H - 4;
+    }
+
+    private int detailLeft() {
+        return rightX() + 4;
+    }
+
+    private int detailRight() {
+        return rightEnd() - 4 - THIN_SCROLLER - 2;
+    }
+
+    private int detailTop() {
+        return boxTop() + 26;
+    }
+
+    private int summaryTop() {
+        return boxBottom() - 3 - SUMMARY_LINES * LINE_H;
+    }
+
+    private int detailBottom() {
+        return state.tab == Tab.POTIONS && state.selected != null ? summaryTop() - 4 : boxBottom() - 3;
+    }
+
+    /** How many rows from {@code first} fit above the summary. */
+    private int rowsFitting(int first) {
+        int y = detailTop();
+        int count = 0;
+        for (int i = first; i < rows.size(); i++) {
+            y += rows.get(i).height();
+            if (y > detailBottom()) {
+                break;
+            }
+            count++;
+        }
+        return Math.max(1, count);
+    }
+
+    /** The first scroll position from which every remaining row fits. */
+    private int maxRowScroll() {
+        int y = detailBottom();
+        int scroll = rows.size();
+        while (scroll > 0 && y - rows.get(scroll - 1).height() >= detailTop()) {
+            y -= rows.get(scroll - 1).height();
+            scroll--;
+        }
+        return scroll;
+    }
+
+    /** Index of the row under {@code my}, or -1. */
+    private int rowAt(double my) {
+        int y = detailTop();
+        for (int i = rowScroll; i < rowScroll + rowsFitting(rowScroll) && i < rows.size(); i++) {
+            int h = rows.get(i).height();
+            if (my >= y && my < y + h) {
+                return i;
+            }
+            y += h;
+        }
+        return -1;
+    }
+
     // ---------------------------------------------------------------- widgets
 
     @Override
     protected void init() {
-        int buttonY = height - FOOTER + 6;
-        int searchWidth = leftEnd() - MARGIN - (state.tab == Tab.POTIONS ? haveWidth() + 4 : 0);
-        search = new EditBox(font, MARGIN, SEARCH_Y, searchWidth, 14, Component.literal(Tr.s("search")));
-        search.setHint(Component.literal(MycelTheme.fit(font, Tr.s(state.tab == Tab.POTIONS ? "search.potions" : "search.ingredients"), searchWidth - 8)));
+        pw = Math.min(MAX_W, width - 8);
+        ph = Math.min(MAX_H, height - 8);
+        px = (width - pw) / 2;
+        py = (height - ph) / 2;
+        cols = Math.max(4, Math.min(MAX_COLUMNS, (pw * 46 / 100 - 2 * PAD - VanillaUi.SCROLLER_W - 4) / CELL));
+
+        int lw = leftWidth();
+        int tabW = (lw - 2) / 2;
+        Tab[] tabs = Tab.values();
+        for (int i = 0; i < tabs.length; i++) {
+            Tab tab = tabs[i];
+            String label = tab == Tab.POTIONS ? Tr.s("tab.potions", allPotions.size())
+                    : Tr.s("tab.ingredients", allReagents.size());
+            Button button = Button.builder(Component.literal(label), b -> showTab(tab))
+                    .bounds(leftX() + i * (tabW + 2), tabY(), i == 0 ? tabW : lw - tabW - 2, BUTTON_H).build();
+            button.active = state.tab != tab;
+            addRenderableWidget(button);
+        }
+
+        search = new EditBox(font, leftX() + 1, searchY(), lw - 2, 14, Component.literal(Tr.s("search")));
+        search.setHint(Component.literal(VanillaUi.fit(font,
+                Tr.s(state.tab == Tab.POTIONS ? "search.potions" : "search.ingredients"), lw - 10)));
         search.setValue(state.search);
         search.setResponder(text -> {
             state.search = text;
             filter();
         });
         addRenderableWidget(search);
+
+        if (state.tab == Tab.POTIONS) {
+            int box = Checkbox.getBoxSize(font);
+            int formW = Math.max(54, formLabelWidth() + 10);
+            formButton = Button.builder(Component.literal(Tr.s("form." + state.form.label)), b -> cycleForm())
+                    .bounds(leftX(), filterY(), formW, box).build();
+            formButton.setTooltip(Tooltip.create(Component.literal(formTooltip())));
+            addRenderableWidget(formButton);
+            Checkbox have = Checkbox.builder(Component.empty(), font)
+                    .pos(leftX() + formW + 6, filterY())
+                    .selected(state.brewableOnly)
+                    .tooltip(Tooltip.create(Component.literal(Tr.s("have_all.tip"))))
+                    .onValueChange((checkbox, value) -> {
+                        state.brewableOnly = value;
+                        BrewingPlusMod.debug("Have all -> {}", value);
+                        filter();
+                    })
+                    .build();
+            addRenderableWidget(have);
+        } else {
+            formButton = null;
+        }
+
+        int buttonY = py + ph - PAD - BUTTON_H;
+        int rw = rightEnd() - rightX();
+        int half = (rw - 4) / 2;
         if (state.tab == Tab.POTIONS) {
             trackButton = Button.builder(trackLabel(), button -> toggleTrack())
-                    .bounds(width - MARGIN - 100 - 4 - 104, buttonY, 104, 20).build();
+                    .bounds(rightX(), buttonY, half, BUTTON_H).build();
             trackButton.active = state.selected != null;
             addRenderableWidget(trackButton);
         } else {
@@ -422,7 +593,38 @@ public final class GuideScreen extends Screen {
         }
         Component back = parent != null ? Component.literal(Tr.s("button.back")) : Component.translatable("gui.done");
         addRenderableWidget(Button.builder(back, button -> onClose())
-                .bounds(width - MARGIN - 100, buttonY, 100, 20).build());
+                .bounds(rightEnd() - half, buttonY, half, BUTTON_H).build());
+    }
+
+    private int formLabelWidth() {
+        int w = 0;
+        for (Form form : Form.values()) {
+            w = Math.max(w, font.width(Tr.s("form." + form.label)));
+        }
+        return w;
+    }
+
+    /** "All / Potion / Splash / Lingering" with the current one marked. */
+    private String formTooltip() {
+        StringBuilder out = new StringBuilder();
+        for (Form form : Form.values()) {
+            if (!out.isEmpty()) {
+                out.append('\n');
+            }
+            out.append(form == state.form ? "> " : "   ").append(Tr.s("form." + form.label));
+        }
+        return out.toString();
+    }
+
+    private void cycleForm() {
+        Form[] forms = Form.values();
+        state.form = forms[(state.form.ordinal() + 1) % forms.length];
+        BrewingPlusMod.debug("Filter -> form {}", state.form);
+        if (formButton != null) {
+            formButton.setMessage(Component.literal(Tr.s("form." + state.form.label)));
+            formButton.setTooltip(Tooltip.create(Component.literal(formTooltip())));
+        }
+        filter();
     }
 
     private Component trackLabel() {
@@ -521,195 +723,51 @@ public final class GuideScreen extends Screen {
         MycelScreens.open(standOpen ? parent : null);
     }
 
-    // ---------------------------------------------------------------- layout
-
-    /** Where the grid panel ends and the detail panel starts. */
-    private int split() {
-        return width * 9 / 20;
-    }
-
-    private int leftEnd() {
-        return split() - 8;
-    }
-
-    private int gridTop() {
-        return state.tab == Tab.POTIONS ? CHIP_Y + CHIP_H + 6 : CHIP_Y;
-    }
-
-    private int columns() {
-        return Math.max(1, (leftEnd() - MARGIN - 4) / CELL);
-    }
-
-    private int gridLeft() {
-        return MARGIN + (leftEnd() - MARGIN - 4 - columns() * CELL) / 2;
-    }
-
-    private int gridRows() {
-        return Math.max(1, (height - FOOTER - gridTop() - 4) / CELL);
-    }
-
-    private int maxGridScroll() {
-        int total = (filtered.size() + columns() - 1) / columns();
-        return Math.max(0, total - gridRows());
-    }
-
-    private int detailLeft() {
-        return split() + 7;
-    }
-
-    private int detailRight() {
-        return width - MARGIN - 4;
-    }
-
-    private int summaryTop() {
-        return height - FOOTER - 2 - SUMMARY_LINES * LINE_H - 4;
-    }
-
-    private int detailBottom() {
-        return state.tab == Tab.POTIONS && state.selected != null ? summaryTop() - 4 : height - FOOTER - 2;
-    }
-
-    /** How many rows from {@code first} fit above the summary. */
-    private int rowsFitting(int first) {
-        int y = DETAIL_TOP;
-        int count = 0;
-        for (int i = first; i < rows.size(); i++) {
-            y += rows.get(i).height();
-            if (y > detailBottom()) {
-                break;
-            }
-            count++;
-        }
-        return Math.max(1, count);
-    }
-
-    /** The first scroll position from which every remaining row fits. */
-    private int maxRowScroll() {
-        int y = detailBottom();
-        int scroll = rows.size();
-        while (scroll > 0 && y - rows.get(scroll - 1).height() >= DETAIL_TOP) {
-            y -= rows.get(scroll - 1).height();
-            scroll--;
-        }
-        return scroll;
-    }
-
-    /** Index of the row under {@code my}, or -1. */
-    private int rowAt(double my) {
-        int y = DETAIL_TOP;
-        for (int i = rowScroll; i < rowScroll + rowsFitting(rowScroll); i++) {
-            int h = rows.get(i).height();
-            if (my >= y && my < y + h) {
-                return i;
-            }
-            y += h;
-        }
-        return -1;
-    }
-
     // ---------------------------------------------------------------- render
+
+    /** The world (dimmed and blurred as usual), then the grey window under the widgets. */
+    @Override
+    public void extractBackground(GuiGraphicsExtractor gfx, int mouseX, int mouseY, float a) {
+        super.extractBackground(gfx, mouseX, mouseY, a);
+        VanillaUi.panel(gfx, px, py, pw, ph);
+        VanillaUi.label(gfx, font, title.getString(), leftX(), py + 6, VanillaUi.LABEL, leftWidth());
+        String source = Tr.s(data.source() == BrewingData.Source.WORLD ? "source.world" : "source.vanilla");
+        source = VanillaUi.fit(font, source, rightEnd() - rightX());
+        gfx.text(font, source, rightEnd() - font.width(source), py + 6, VanillaUi.DIM, false);
+        VanillaUi.inset(gfx, rightX(), boxTop(), rightEnd() - rightX(), boxBottom() - boxTop(), VanillaUi.BODY);
+    }
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor gfx, int mouseX, int mouseY, float a) {
-        // Chrome first so widgets (search box, buttons) draw on top of the panels.
-        gfx.fill(0, 0, width, height, MycelTheme.SHADE);
-        gfx.fill(0, 0, width, TITLE_BAR, MycelTheme.ACCENT_DARK);
-        gfx.fill(0, TITLE_BAR - 2, width, TITLE_BAR, MycelTheme.HEADER_EDGE);
-        gfx.centeredText(font, title, width / 2, 4, MycelTheme.HEADING);
-        String source = Tr.s(data.source() == BrewingData.Source.WORLD ? "source.world" : "source.vanilla");
-        gfx.text(font, source, width - MARGIN - font.width(source), 4, 0xFFFFCDD2);
-        MycelTheme.panel(gfx, 4, TITLE_BAR + 2, split() - 1, height - FOOTER + 2);
-        MycelTheme.panel(gfx, split() + 1, TITLE_BAR + 2, width - 4, height - FOOTER + 2);
         super.extractRenderState(gfx, mouseX, mouseY, a);
-        renderTabs(gfx, mouseX, mouseY);
         if (state.tab == Tab.POTIONS) {
-            renderChips(gfx, mouseX, mouseY);
-            renderHaveToggle(gfx, mouseX, mouseY);
+            int x = leftX() + Math.max(54, formLabelWidth() + 10) + 6 + Checkbox.getBoxSize(font) + 4;
+            VanillaUi.label(gfx, font, Tr.s("have_all"), x, filterY() + (Checkbox.getBoxSize(font) - 8) / 2,
+                    VanillaUi.LABEL, leftX() + leftWidth() - x);
         }
         renderGrid(gfx, mouseX, mouseY);
         renderDetail(gfx, mouseX, mouseY);
     }
 
-    private int tabWidth() {
-        return (leftEnd() - MARGIN) / 2 - 2;
-    }
-
-    private void renderTabs(GuiGraphicsExtractor gfx, int mouseX, int mouseY) {
-        Tab[] tabs = Tab.values();
-        for (int i = 0; i < tabs.length; i++) {
-            int x = MARGIN + i * (tabWidth() + 4);
-            boolean on = state.tab == tabs[i];
-            boolean hover = inside(mouseX, mouseY, x, TAB_Y, tabWidth(), TAB_H);
-            gfx.fill(x, TAB_Y, x + tabWidth(), TAB_Y + TAB_H, on ? MycelTheme.ACCENT_DARK : hover ? MycelTheme.BORDER : MycelTheme.SURFACE);
-            String label = tabs[i] == Tab.POTIONS ? Tr.s("tab.potions", allPotions.size())
-                    : Tr.s("tab.ingredients", allReagents.size());
-            gfx.centeredText(font, MycelTheme.fit(font, label, tabWidth() - 4), x + tabWidth() / 2, TAB_Y + 3,
-                    on ? MycelTheme.HEADING : MycelTheme.DIM);
-        }
-    }
-
-    static String haveLabel() {
-        return Tr.s("have_all");
-    }
-    static final int HAVE_ON = 0xFF1F4D2B;
-
-    /** Chip x positions, one per form. */
-    private int[] chipXs() {
-        Form[] forms = Form.values();
-        int[] xs = new int[forms.length];
-        int x = MARGIN;
-        for (int i = 0; i < forms.length; i++) {
-            xs[i] = x;
-            x += font.width(Tr.s("form." + forms[i].label)) + 8 + 3;
-        }
-        return xs;
-    }
-
-    private void renderChips(GuiGraphicsExtractor gfx, int mouseX, int mouseY) {
-        Form[] forms = Form.values();
-        int[] xs = chipXs();
-        for (int i = 0; i < forms.length; i++) {
-            int w = font.width(Tr.s("form." + forms[i].label)) + 8;
-            if (xs[i] + w > leftEnd()) {
-                break;
-            }
-            boolean on = state.form == forms[i];
-            boolean hover = inside(mouseX, mouseY, xs[i], CHIP_Y, w, CHIP_H);
-            gfx.fill(xs[i], CHIP_Y, xs[i] + w, CHIP_Y + CHIP_H, on ? MycelTheme.ACCENT_DARK : hover ? MycelTheme.BORDER : MycelTheme.SURFACE);
-            gfx.text(font, Tr.s("form." + forms[i].label), xs[i] + 4, CHIP_Y + 2, on ? MycelTheme.HEADING : MycelTheme.DIM);
-        }
-    }
-
-    private int haveWidth() {
-        return font.width(haveLabel()) + 10;
-    }
-
-    private int haveX() {
-        return leftEnd() - haveWidth();
-    }
-
-    /** "Have all": only potions you carry every ingredient for. */
-    private void renderHaveToggle(GuiGraphicsExtractor gfx, int mouseX, int mouseY) {
-        boolean hover = inside(mouseX, mouseY, haveX(), SEARCH_Y, haveWidth(), 14);
-        gfx.fill(haveX(), SEARCH_Y, leftEnd(), SEARCH_Y + 14,
-                state.brewableOnly ? HAVE_ON : hover ? MycelTheme.BORDER : MycelTheme.SURFACE);
-        gfx.fill(haveX() + 3, SEARCH_Y + 5, haveX() + 6, SEARCH_Y + 8, state.brewableOnly ? MycelTheme.GOOD : MycelTheme.OFF);
-        gfx.text(font, haveLabel(), haveX() + 8, SEARCH_Y + 3, state.brewableOnly ? MycelTheme.HEADING : MycelTheme.DIM);
-        if (hover) {
-            gfx.setTooltipForNextFrame(font, Component.literal(Tr.s("have_all.tip")),
-                    mouseX, mouseY);
-        }
-    }
-
     private void renderGrid(GuiGraphicsExtractor gfx, int mouseX, int mouseY) {
+        gridScroll = Math.min(gridScroll, maxGridScroll());
+        int rowsShown = gridRows();
+        for (int row = 0; row < rowsShown; row++) {
+            for (int col = 0; col < columns(); col++) {
+                VanillaUi.slot(gfx, gridLeft() + col * CELL, gridTop() + row * CELL);
+            }
+        }
+        VanillaUi.scrollbar(gfx, gridLeft() + columns() * CELL + 2, gridTop(), rowsShown * CELL, gridScroll,
+                maxGridScroll());
         if (filtered.isEmpty()) {
             String empty = Tr.s(state.brewableOnly ? "grid.none_brewable" : "grid.none");
-            gfx.text(font, MycelTheme.fit(font, empty, leftEnd() - MARGIN), MARGIN, gridTop() + 4, MycelTheme.DIM);
+            gfx.text(font, VanillaUi.fit(font, empty, columns() * CELL - 8), gridLeft() + 4, gridTop() + 5,
+                    0xFFFFFFFF, true);
             return;
         }
-        gridScroll = Math.min(gridScroll, maxGridScroll());
         int hovered = cellAt(mouseX, mouseY);
-        for (int row = 0; row < gridRows(); row++) {
+        boolean potions = state.tab == Tab.POTIONS;
+        for (int row = 0; row < rowsShown; row++) {
             for (int col = 0; col < columns(); col++) {
                 int index = (row + gridScroll) * columns() + col;
                 if (index >= filtered.size()) {
@@ -718,28 +776,34 @@ public final class GuideScreen extends Screen {
                 String key = filtered.get(index);
                 int x = gridLeft() + col * CELL;
                 int y = gridTop() + row * CELL;
-                boolean potions = state.tab == Tab.POTIONS;
                 boolean picked = key.equals(potions ? state.selected : state.selectedReagent);
-                boolean special = potions ? key.equals(state.tracked) : data.reagent(key).isEmpty();
-                gfx.fill(x, y, x + CELL - 1, y + CELL - 1, picked || index == hovered ? MycelTheme.ACCENT : MycelTheme.BORDER);
-                gfx.fill(x + 1, y + 1, x + CELL - 2, y + CELL - 2, picked || special ? MycelTheme.NOTE : MycelTheme.SURFACE);
+                if (picked) {
+                    gfx.fill(x + 1, y + 1, x + CELL - 1, y + CELL - 1, 0xFFA0A0A0);
+                    gfx.outline(x, y, CELL, CELL, 0xFFFFFFFF);
+                }
+                if (potions && key.equals(state.tracked)) {
+                    gfx.outline(x + 1, y + 1, CELL - 2, CELL - 2, 0xFFFFD84A);
+                }
                 ItemStack stack = potions ? data.bottle(key) : reagentStack(key);
                 gfx.item(stack, x + 1, y + 1);
                 boolean ready = potions ? canBrew(key) : counts.getOrDefault(key, 0) > 0;
                 if (ready) {
-                    gfx.fill(x + CELL - 5, y + CELL - 5, x + CELL - 2, y + CELL - 2, MycelTheme.GOOD);
+                    gfx.fill(x + CELL - 6, y + CELL - 6, x + CELL - 2, y + CELL - 2, 0xFF1C3A12);
+                    gfx.fill(x + CELL - 5, y + CELL - 5, x + CELL - 3, y + CELL - 3, 0xFF55FF55);
                 }
                 if (!potions && data.reagent(key).isEmpty()) {
-                    gfx.text(font, "?", x + 2, y + 1, MycelTheme.WARN);
+                    gfx.text(font, "?", x + 2, y + 1, 0xFFFFFF55, true);
+                }
+                if (index == hovered) {
+                    gfx.fill(x + 1, y + 1, x + CELL - 1, y + CELL - 1, VanillaUi.HOVER);
                 }
             }
         }
         if (hovered >= 0) {
             String key = filtered.get(hovered);
-            ItemStack stack = state.tab == Tab.POTIONS ? data.bottle(key) : reagentStack(key);
+            ItemStack stack = potions ? data.bottle(key) : reagentStack(key);
             gfx.setTooltipForNextFrame(font, stack, mouseX, mouseY);
         }
-        drawScrollbar(gfx, gridLeft() + columns() * CELL + 2, gridTop(), gridRows() * CELL, gridScroll, maxGridScroll());
     }
 
     private int cellAt(double mouseX, double mouseY) {
@@ -755,23 +819,22 @@ public final class GuideScreen extends Screen {
     private void renderDetail(GuiGraphicsExtractor gfx, int mouseX, int mouseY) {
         int x0 = detailLeft();
         int x1 = detailRight();
-        gfx.fill(split() + 3, TITLE_BAR + 4, width - 6, DETAIL_TOP - 6, MycelTheme.SURFACE);
+        int top = boxTop();
         boolean potions = state.tab == Tab.POTIONS;
         String key = potions ? state.selected : state.selectedReagent;
         if (key == null) {
-            int mid = (x0 + x1) / 2;
-            int y = (DETAIL_TOP + height - FOOTER) / 2 - 12;
-            gfx.text(font, Tr.s(potions ? "detail.potion_guide" : "detail.ingredient_guide"), x0, TAB_Y + 5, MycelTheme.HEADING);
-            gfx.centeredText(font, MycelTheme.fit(font, Tr.s(potions ? "detail.pick_potion" : "detail.pick_ingredient"), x1 - x0),
-                    mid, y, MycelTheme.TEXT);
-            gfx.centeredText(font, MycelTheme.fit(font, Tr.s(potions ? "detail.dot_brew" : "detail.dot_have"), x1 - x0),
-                    mid, y + 12, MycelTheme.DIM);
+            int room = rightEnd() - rightX() - 8;
+            VanillaUi.label(gfx, font, Tr.s(potions ? "detail.potion_guide" : "detail.ingredient_guide"), x0, top + 6,
+                    VanillaUi.LABEL, room);
+            int y = (top + boxBottom()) / 2 - 10;
+            centered(gfx, Tr.s(potions ? "detail.pick_potion" : "detail.pick_ingredient"), y, VanillaUi.LABEL);
+            centered(gfx, Tr.s(potions ? "detail.dot_brew" : "detail.dot_have"), y + 12, VanillaUi.DIM);
             return;
         }
         ItemStack icon = potions ? data.bottle(key) : reagentStack(key);
-        gfx.item(icon, x0, TAB_Y + 1);
-        gfx.text(font, MycelTheme.fit(font, potions ? PotionText.full(icon) : PotionText.name(icon), x1 - x0 - 20),
-                x0 + 20, TAB_Y + 1, MycelTheme.HEADING);
+        gfx.item(icon, x0, top + 4);
+        VanillaUi.label(gfx, font, potions ? PotionText.full(icon) : PotionText.name(icon), x0 + 20, top + 4,
+                VanillaUi.LABEL, rightEnd() - 4 - x0 - 20);
         String sub;
         if (potions) {
             Route route = data.routeFromWater(key);
@@ -781,57 +844,60 @@ public final class GuideScreen extends Screen {
         } else {
             sub = Tr.s("have", counts.getOrDefault(key, 0));
         }
-        gfx.text(font, MycelTheme.fit(font, sub, x1 - x0 - 20), x0 + 20, TAB_Y + 11, MycelTheme.DIM);
-        if (inside(mouseX, mouseY, x0, TAB_Y + 1, 16, 16)) {
+        VanillaUi.label(gfx, font, sub, x0 + 20, top + 14, VanillaUi.DIM, rightEnd() - 4 - x0 - 20);
+        gfx.fill(x0, top + 23, rightEnd() - 4, top + 24, VanillaUi.SLOT_FILL);
+        if (inside(mouseX, mouseY, x0, top + 4, 16, 16)) {
             gfx.setTooltipForNextFrame(font, icon, mouseX, mouseY);
         }
 
         rowScroll = Math.min(rowScroll, maxRowScroll());
         ItemStack hoveredIcon = ItemStack.EMPTY;
-        int y = DETAIL_TOP;
+        int y = detailTop();
         for (int i = rowScroll; i < rowScroll + rowsFitting(rowScroll) && i < rows.size(); i++) {
             Row row = rows.get(i);
-            ItemStack hit = renderRow(gfx, row, i, x0, x1, y, mouseX, mouseY);
+            ItemStack hit = renderRow(gfx, row, x0, x1, y, mouseX, mouseY);
             if (!hit.isEmpty()) {
                 hoveredIcon = hit;
             }
             y += row.height();
         }
-        drawScrollbar(gfx, x1 + 2, DETAIL_TOP, detailBottom() - DETAIL_TOP, rowScroll, maxRowScroll());
+        drawThinScrollbar(gfx, rightEnd() - 4 - THIN_SCROLLER, detailTop(), detailBottom() - detailTop(), rowScroll,
+                maxRowScroll());
         if (potions) {
-            renderSummary(gfx, key, x0, x1);
+            renderSummary(gfx, key, x0, rightEnd() - 4);
         }
         if (!hoveredIcon.isEmpty()) {
             gfx.setTooltipForNextFrame(font, hoveredIcon, mouseX, mouseY);
         }
     }
 
+    private void centered(GuiGraphicsExtractor gfx, String text, int y, int color) {
+        int room = rightEnd() - rightX() - 8;
+        String s = VanillaUi.fit(font, text, room);
+        gfx.text(font, s, (rightX() + rightEnd() - font.width(s)) / 2, y, color, false);
+    }
+
     /** Draws one detail row; returns the item under the mouse, if any. */
-    private ItemStack renderRow(GuiGraphicsExtractor gfx, Row row, int index, int x0, int x1, int y, int mouseX,
-            int mouseY) {
+    private ItemStack renderRow(GuiGraphicsExtractor gfx, Row row, int x0, int x1, int y, int mouseX, int mouseY) {
         if (row.header) {
-            gfx.text(font, row.text, x0, y + 3, row.color);
+            gfx.text(font, row.text, x0, y + 3, VanillaUi.LABEL, false);
             if (!row.right.isEmpty()) {
-                gfx.text(font, row.right, x1 - font.width(row.right), y + 3, MycelTheme.OFF);
+                String right = VanillaUi.fit(font, row.right, Math.max(0, x1 - x0 - font.width(row.text) - 6));
+                gfx.text(font, right, x1 - font.width(right), y + 3, VanillaUi.DIM, false);
             }
-            gfx.fill(x0, y + 12, x1, y + 13, MycelTheme.BORDER);
+            gfx.fill(x0, y + 12, x1, y + 13, VanillaUi.SLOT_FILL);
             return ItemStack.EMPTY;
         }
         int h = row.height();
         boolean clickable = row.bottle != null || row.reagent != null;
-        boolean hovered = inside(mouseX, mouseY, x0 - 2, y, x1 - x0 + 4, h);
-        if (index % 2 == 1) {
-            gfx.fill(x0 - 2, y, x1 + 2, y + h, MycelTheme.ZEBRA);
-        }
-        if (hovered && clickable) {
-            gfx.fill(x0 - 2, y, x1 + 2, y + h, MycelTheme.SURFACE);
+        if (clickable && inside(mouseX, mouseY, x0 - 2, y, x1 - x0 + 4, h)) {
+            gfx.fill(x0 - 2, y, x1 + 2, y + h, 0x40FFFFFF);
         }
         int x = x0;
         if (row.badge != null) {
-            int badge = Math.max(10, font.width(row.badge) + 4);
-            gfx.fill(x, y + 6, x + badge, y + 16, MycelTheme.ACCENT_DARK);
-            gfx.centeredText(font, row.badge, x + badge / 2 + 1, y + 7, MycelTheme.HEADING);
-            x += badge + 3;
+            String badge = row.badge + ".";
+            gfx.text(font, badge, x, y + 7, VanillaUi.DIM, false);
+            x += font.width("9.") + 3;
         }
         ItemStack hit = ItemStack.EMPTY;
         if (!row.icon.isEmpty()) {
@@ -844,12 +910,12 @@ public final class GuideScreen extends Screen {
         int rightWidth = row.right.isEmpty() ? 0 : font.width(row.right) + 4;
         boolean twoLines = !row.text2.isEmpty();
         int line1 = twoLines ? y + 2 : y + 7;
-        gfx.text(font, MycelTheme.fit(font, row.text, x1 - rightWidth - x), x, line1, row.color);
+        gfx.text(font, VanillaUi.fit(font, row.text, x1 - rightWidth - x), x, line1, row.color, false);
         if (!row.right.isEmpty()) {
-            gfx.text(font, row.right, x1 - font.width(row.right), line1, row.rightColor);
+            gfx.text(font, row.right, x1 - font.width(row.right), line1, row.rightColor, false);
         }
         if (twoLines) {
-            gfx.text(font, MycelTheme.fit(font, row.text2, x1 - x), x, y + 12, row.color2);
+            gfx.text(font, VanillaUi.fit(font, row.text2, x1 - x), x, y + 12, VanillaUi.DIM, false);
             if (!row.icon2.isEmpty() && inside(mouseX, mouseY, x, y + 11, x1 - x, 10)) {
                 hit = row.icon2;
             }
@@ -857,10 +923,10 @@ public final class GuideScreen extends Screen {
         return hit;
     }
 
-    /** "You carry everything" / "Missing: ...", the 3-bottle note, and the stand's fuel. */
+    /** "You carry everything" / "Missing: ...", and the stand's fuel. */
     private void renderSummary(GuiGraphicsExtractor gfx, String bottle, int x0, int x1) {
         int y = summaryTop();
-        gfx.fill(x0 - 2, y - 3, x1 + 2, y - 2, MycelTheme.BORDER);
+        gfx.fill(x0, y - 3, x1, y - 2, VanillaUi.SLOT_FILL);
         Route route = data.routeFromWater(bottle);
         if (route == null) {
             return;
@@ -872,30 +938,31 @@ public final class GuideScreen extends Screen {
                 missing.add(PotionText.name(data.reagent(route.steps().get(i).reagents().get(0))));
             }
         }
-        gfx.fill(x0 - 2, y, x0 + 1, y + LINE_H - 1, missing.isEmpty() ? MycelTheme.GOOD : MycelTheme.ACCENT);
-        String status = missing.isEmpty() ? Tr.s("status.all")
-                : Tr.s("status.missing", String.join(", ", missing));
-        gfx.text(font, MycelTheme.fit(font, status, x1 - x0 - 6), x0 + 5, y + 1, missing.isEmpty() ? MycelTheme.GOOD : MycelTheme.BAD);
+        String status = missing.isEmpty() ? Tr.s("status.all") : Tr.s("status.missing", String.join(", ", missing));
+        VanillaUi.label(gfx, font, status, x0, y + 1, missing.isEmpty() ? VanillaUi.GOOD : VanillaUi.BAD, x1 - x0);
         y += LINE_H;
         if (parent != null) {
             int fuel = parent.getMenu().getFuel();
             int steps = route.steps().size();
-            String line = fuel > 0 ? Tr.s("status.fuel", Tr.plural(fuel, "brews"))
-                    : Tr.s("status.no_fuel");
-            int color = fuel <= 0 ? MycelTheme.WARN : fuel < steps ? MycelTheme.WARN : MycelTheme.DIM;
-            gfx.text(font, MycelTheme.fit(font, line, x1 - x0), x0, y + 1, color);
+            String line = fuel > 0 ? Tr.s("status.fuel", Tr.plural(fuel, "brews")) : Tr.s("status.no_fuel");
+            int color = fuel < steps ? VanillaUi.WARN : VanillaUi.DIM;
+            VanillaUi.label(gfx, font, line, x0, y + 1, color, x1 - x0);
         }
     }
 
-    private void drawScrollbar(GuiGraphicsExtractor gfx, int x, int top, int height, int scroll, int maxScroll) {
+    /** Vanilla's list scroller (the one in the world and server lists). */
+    private void drawThinScrollbar(GuiGraphicsExtractor gfx, int x, int top, int height, int scroll, int maxScroll) {
         if (maxScroll <= 0) {
             return;
         }
-        int thumb = Math.max(8, height / (maxScroll + 1));
+        int thumb = Math.max(12, height * height / (height + maxScroll * ROW_H));
         int y = top + (height - thumb) * scroll / maxScroll;
-        gfx.fill(x, top, x + 2, top + height, MycelTheme.SURFACE);
-        gfx.fill(x, y, x + 2, y + thumb, MycelTheme.OFF);
+        gfx.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER_BACKGROUND, x, top, THIN_SCROLLER, height);
+        gfx.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER, x, y, THIN_SCROLLER, thumb);
     }
+
+    private static final Identifier SCROLLER = Identifier.withDefaultNamespace("widget/scroller");
+    private static final Identifier SCROLLER_BACKGROUND = Identifier.withDefaultNamespace("widget/scroller_background");
 
     private static boolean inside(double mx, double my, int x, int y, int w, int h) {
         return mx >= x && mx < x + w && my >= y && my < y + h;
@@ -914,22 +981,6 @@ public final class GuideScreen extends Screen {
         }
         double mx = event.x();
         double my = event.y();
-        Tab[] tabs = Tab.values();
-        for (int i = 0; i < tabs.length; i++) {
-            if (inside(mx, my, MARGIN + i * (tabWidth() + 4), TAB_Y, tabWidth(), TAB_H)) {
-                showTab(tabs[i]);
-                return true;
-            }
-        }
-        if (state.tab == Tab.POTIONS && clickChip(mx, my)) {
-            return true;
-        }
-        if (state.tab == Tab.POTIONS && inside(mx, my, haveX(), SEARCH_Y, haveWidth(), 14)) {
-            state.brewableOnly = !state.brewableOnly;
-            BrewingPlusMod.debug("Have all -> {}", state.brewableOnly);
-            filter();
-            return true;
-        }
         int cell = cellAt(mx, my);
         if (cell >= 0) {
             String key = filtered.get(cell);
@@ -940,7 +991,7 @@ public final class GuideScreen extends Screen {
             }
             return true;
         }
-        if (mx >= detailLeft() - 2 && mx < detailRight() + 2 && my >= DETAIL_TOP) {
+        if (mx >= detailLeft() - 2 && mx < detailRight() + 2 && my >= detailTop()) {
             int index = rowAt(my);
             if (index >= 0) {
                 Row row = rows.get(index);
@@ -957,27 +1008,13 @@ public final class GuideScreen extends Screen {
         return false;
     }
 
-    private boolean clickChip(double mx, double my) {
-        Form[] forms = Form.values();
-        int[] xs = chipXs();
-        for (int i = 0; i < forms.length; i++) {
-            if (inside(mx, my, xs[i], CHIP_Y, font.width(Tr.s("form." + forms[i].label)) + 8, CHIP_H)) {
-                state.form = forms[i];
-                BrewingPlusMod.debug("Filter -> form {}", state.form);
-                filter();
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
         if (super.mouseScrolled(x, y, scrollX, scrollY)) {
             return true;
         }
         int delta = scrollY > 0 ? -1 : scrollY < 0 ? 1 : 0;
-        if (x < split()) {
+        if (x < rightX()) {
             gridScroll = Math.max(0, Math.min(maxGridScroll(), gridScroll + delta));
         } else {
             rowScroll = Math.max(0, Math.min(maxRowScroll(), rowScroll + delta));
